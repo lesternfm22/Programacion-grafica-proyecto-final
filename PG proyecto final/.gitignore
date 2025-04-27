@@ -1,0 +1,26 @@
+# Ignorar carpetas de compilación de Visual Studio
+.vs/
+Debug/
+Release/
+
+# Ignorar archivos temporales de Visual Studio
+*.VC.db
+*.VC.opendb
+
+# Ignorar binarios y archivos de compilación
+*.exe
+*.obj
+*.pch
+*.sdf
+*.log
+*.db
+*.ipch
+*.aps
+*.ncb
+*.opendb
+
+# Otros
+*.user
+*.suo
+*.cache
+*.ilk
