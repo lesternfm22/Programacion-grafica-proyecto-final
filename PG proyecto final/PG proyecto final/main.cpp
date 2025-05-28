@@ -15,7 +15,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	//Establecemos el nombre que deseamos aparezca en pantalla
-	GLFWwindow* window = glfwCreateWindow(800, 800, "Proyeto Mita", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(800, 800, "the virtual gallery", NULL, NULL);
 
 	//En caso que la ventana no se pueda crear entonces enviamos un error.
 	if (window == NULL) {
