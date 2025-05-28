@@ -71,16 +71,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\LENOVO\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;C:\Users\Lester Flores\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\LENOVO\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;C:\Users\Lester Flores\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\HP VICTUS\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;C:\Users\LENOVO\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;C:\Users\Lester Flores\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\HP VICTUS\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;C:\Users\LENOVO\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;C:\Users\Lester Flores\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\Lester Flores\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Lester Flores\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\HP VICTUS\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;C:\Users\Lester Flores\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\HP VICTUS\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;C:\Users\Lester Flores\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\LENOVO\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>C:\Users\LENOVO\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
+    <IncludePath>C:\Users\HP VICTUS\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;C:\Users\LENOVO\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>C:\Users\HP VICTUS\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;C:\Users\LENOVO\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\Users\HP VICTUS\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>C:\Users\HP VICTUS\Documents\GitHub\Programacion-grafica-proyecto-final\PG proyecto final\Libraries\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -109,6 +113,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib%(AditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -138,7 +143,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib%(AditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
