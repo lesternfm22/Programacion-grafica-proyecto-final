@@ -1,8 +1,3 @@
-////------- Ignore this ----------
-#include<filesystem>
-namespace fs = std::filesystem;
-////------------------------------
-
 #include"Model.h"
 
 const unsigned int width = 1200;
