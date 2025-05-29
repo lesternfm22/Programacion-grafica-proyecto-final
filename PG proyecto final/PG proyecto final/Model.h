@@ -11,12 +11,14 @@ class Model
 {
 public:
 	// Loads in a model from a file and stores tha information in 'data', 'JSON', and 'file'
-	Model(const char* file);
-
+	Model(const char* file, glm::vec3 customScale = glm::vec3(1.0f));
 	void Draw(Shader& shader, Camera& camera);
+	void SetScale(glm::vec3 newScale);
 
 private:
 	// Variables for easy access
+	glm::vec3 modelScale;
+
 	const char* file;
 	std::vector<unsigned char> data;
 	json JSON;

@@ -1,0 +1,11 @@
+Model Information:
+* title:	MAYAN RELIC
+* source:	https://sketchfab.com/3d-models/mayan-relic-433212a9c4484d08a08ff6f905d652f0
+* author:	Romain Vaysse (https://sketchfab.com/redshell)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "MAYAN RELIC" (https://sketchfab.com/3d-models/mayan-relic-433212a9c4484d08a08ff6f905d652f0) by Romain Vaysse (https://sketchfab.com/redshell) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)

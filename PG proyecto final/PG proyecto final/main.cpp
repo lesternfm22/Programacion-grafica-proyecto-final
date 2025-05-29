@@ -1,61 +1,124 @@
-#include <iostream>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+////------- Ignore this ----------
+//#include<filesystem>
+//namespace fs = std::filesystem;
+////------------------------------
 
-int main() {
+#include"Model.h"
 
-	//Inicializamos la libreria GLFW
-	glfwInit();
+const unsigned int width = 1200;
+const unsigned int height = 1200;
 
-	//Le indicamos a GLFW con que version de OpenGL queremos trabajar. En este caso estamos usando OpenGL 3.7
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+int main()
+{
+    // Initialize GLFW
+    glfwInit();
 
-	//Le indicamos GLFW que estamos usando solo funciones modernas
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // Tell GLFW what version of OpenGL we are using 
+    // In this case we are using OpenGL 3.3
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    // Tell GLFW we are using the CORE profile
+    // So that means we only have the modern functions
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	//Establecemos el nombre que deseamos aparezca en pantalla
-	GLFWwindow* window = glfwCreateWindow(800, 800, "the virtual gallery", NULL, NULL);
+    // Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
+    GLFWwindow* window = glfwCreateWindow(width, height, "YoutubeOpenGL", NULL, NULL);
+    // Error check if the window fails to create
+    if (window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    // Introduce the window into the current context
+    glfwMakeContextCurrent(window);
 
-	//En caso que la ventana no se pueda crear entonces enviamos un error.
-	if (window == NULL) {
+    //Load GLAD so it configures OpenGL
+    gladLoadGL();
+    // Specify the viewport of OpenGL in the Window
+    // In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
+    glViewport(0, 0, width, height);
 
-		std::cout << "Fallo al tratar de crear la ventana usando GLFW" << std::endl;
-		glfwTerminate();
+    // Generates Shader objects
+    Shader shaderProgram("default.vert", "default.frag");
 
-		return -1;
-	}
+    // Take care of all the light related things
+    glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
 
-	//Ponemos la ventana en el contexto actual de lo que queremos presentar en pantalla
-	glfwMakeContextCurrent(window);
+    shaderProgram.Activate();
+    glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+    glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
-	//Cargamos GLAD para configurar OpenGL
-	gladLoadGL();
 
-	//Especificamos el puerto de vision de OpenGL en la ventana. En este caso tiene las coordenadas desde x = 0, y = 0, hasta x = 800, y = 800
-	glViewport(0, 0, 800, 800);
+    // Creates camera object
+    Camera camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f));
 
-	//Especificamos el color de fondo
-	glClearColor(0.07f, 0.13f, 0.17f, 1.0f); //Podemos jugar con los parametros del color para obtener diferentes tonos del fondo en la ventana.
+    // Load in model using simpler approach
+   Model model("modelos/piso/scene.gltf", glm::vec3(2.0f)); // Escala normal
+   Model casa("modelos/mus3/scene.gltf", glm::vec3(1.0f));  // Mitad de tamaño
 
-	//Limpiamos el buffer de memoria con el valor que tiene y asignamos un nuevo color si acaso es necesario
-	glClear(GL_COLOR_BUFFER_BIT);
+    // Variables to create periodic event for FPS displaying
+    double prevTime = 0.0;
+    double crntTime = 0.0;
+    double timeDiff;
+    // Keeps track of the amount of frames in timeDiff
+    unsigned int counter = 0;
 
-	//Realizamos un intercambio entre el buffer trasero con el buffer delantero, es decir, entre el registro viejo de memoria con el nuevo registro de memoria
-	glfwSwapBuffers(window);
 
-	while (!glfwWindowShouldClose(window))
-	{
-		//Tomamos en consideracion todos los eventos que le puedan ser indicados a GLFW
-		glfwPollEvents();
-	}
+    // Main while loop
+    while (!glfwWindowShouldClose(window))
+    {
+        // Updates counter and times
+        crntTime = glfwGetTime();
+        timeDiff = crntTime - prevTime;
+        counter++;
 
-	//Eliminamos la ventana antes de que termine el programa
-	glfwDestroyWindow(window);
+        if (timeDiff >= 1.0 / 30.0)
+        {
+            // Creates new title
+            std::string FPS = std::to_string((1.0 / timeDiff) * counter);
+            std::string ms = std::to_string((timeDiff / counter) * 1000);
+            std::string newTitle = "YoutubeOpenGL - " + FPS + "FPS / " + ms + "ms";
+            glfwSetWindowTitle(window, newTitle.c_str());
 
-	//Terminamos de ejecutar GLFW antes de que termine el programa
-	glfwTerminate();
+            // Resets times and counter
+            prevTime = crntTime;
+            counter = 0;
+        }
 
-	return 0;
+        // Specify the color of the background
+        glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+        // Clean the back buffer and depth buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Handles camera inputs
+        camera.Inputs(window);
+        // Updates and exports the camera matrix to the Vertex Shader
+        camera.updateMatrix(60.0f, 0.1f, 1000.0f);
+
+        // Draw the normal model
+        model.Draw(shaderProgram, camera);
+        casa.Draw(shaderProgram, camera);
+
+
+        // Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
+        glDepthFunc(GL_LEQUAL);
+
+        // Switch back to the normal depth function
+        glDepthFunc(GL_LESS);
+
+        // Swap the back buffer with the front buffer
+        glfwSwapBuffers(window);
+        // Take care of all GLFW events
+        glfwPollEvents();
+    }
+
+    // Delete all the objects we've created
+    shaderProgram.Delete();
+    // Delete window before ending the program
+    glfwDestroyWindow(window);
+    // Terminate GLFW before ending the program
+    glfwTerminate();
+    return 0;
 }
