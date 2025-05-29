@@ -1,8 +1,6 @@
-# Ignorar carpetas de compilación de Visual Studio
 .vs/
 Debug/
 Release/
-
 # Ignorar archivos temporales de Visual Studio
 *.VC.db
 *.VC.opendb
