@@ -102,6 +102,7 @@ int main()
     // Load in model using simpler approach
    Model model("modelos/piso/scene.gltf", glm::vec3(2.0f)); // Escala normal
    Model casa("modelos/mus3/scene.gltf", glm::vec3(1.0f));  // Mitad de tamaño
+   Model sta("modelos/sta/scene.gltf", glm::vec3(0.5f));  // Mitad de tamaño
 
     // Variables to create periodic event for FPS displaying
     double prevTime = 0.0;
@@ -215,7 +216,7 @@ int main()
         // Draw the normal model
         model.Draw(shaderProgram, camera);
         casa.Draw(shaderProgram, camera);
-
+        sta.Draw(shaderProgram, camera);
 
         // Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
         glDepthFunc(GL_LEQUAL);
