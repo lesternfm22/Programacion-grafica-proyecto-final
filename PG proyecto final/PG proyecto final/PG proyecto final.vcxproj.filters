@@ -91,5 +91,11 @@
     <None Include="skybox.vert">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
+    <None Include="Menu.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Menu.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
