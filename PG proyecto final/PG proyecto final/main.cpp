@@ -1,24 +1,28 @@
-#include "Model.h"
-#include <filesystem>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <iostream>
+#include <filesystem>
+#include<stb/stb_image.h>
+#include "ShaderClass.h" 
+#include "Model.h"
 
-const unsigned int width = 1200;
-const unsigned int height = 1200;
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-// Variables globales para el estado del menú
-bool menu = true;
 
 float skyboxVertices[] =
 {
     //   Coordinates
-    -1.0f, -1.0f,  1.0f,//        7--------6
-     1.0f, -1.0f,  1.0f,//       /|       /|
-     1.0f, -1.0f, -1.0f,//      4--------5 |
-    -1.0f, -1.0f, -1.0f,//      | |      | |
-    -1.0f,  1.0f,  1.0f,//      | 3------|-2
-     1.0f,  1.0f,  1.0f,//      |/       |/
-     1.0f,  1.0f, -1.0f,//      0--------1
-    -1.0f,  1.0f, -1.0f
+   -1.0f, -1.0f,  1.0f,//        7--------6
+    1.0f, -1.0f,  1.0f,//       /|       /|
+    1.0f, -1.0f, -1.0f,//      4--------5 |
+   -1.0f, -1.0f, -1.0f,//      | |      | |
+   -1.0f,  1.0f,  1.0f,//      | 3------|-2
+    1.0f,  1.0f,  1.0f,//      |/       |/
+    1.0f,  1.0f, -1.0f,//      0--------1
+   -1.0f,  1.0f, -1.0f
+
 };
 
 unsigned int skyboxIndices[] =
@@ -43,18 +47,26 @@ unsigned int skyboxIndices[] =
     7, 6, 2
 };
 
-// Función para procesar inputs
-void processInput(GLFWwindow* window)
-{
+
+//  FUNCION
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow* window, bool& menu) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-        menu = false;
+        menu = false; // Salir del menú
 }
 
-int main()
-{
+
+const unsigned int width = 1920;
+const unsigned int height = 1080;
+
+
+int main() {
     // Initialize GLFW
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -62,36 +74,40 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create window
-    GLFWwindow* window = glfwCreateWindow(width, height, "The virtual Gallery", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
+    GLFWwindow* window = glfwCreateWindow(width, height, "The Virtual Gallery", NULL, NULL);
+    if (!window) {
+        std::cerr << "ERROR al crear la ventana GLFW" << std::endl;
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // Load GLAD
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+    // Cargar funciones OpenGL
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cerr << "ERROR al inicializar GLAD" << std::endl;
         return -1;
     }
 
-    // Set viewport
-    glViewport(0, 0, width, height);
+    glEnable(GL_DEPTH_TEST);
 
     // Load shaders
+    Shader menuShader("menu.vert", "menu.frag");
     Shader shaderProgram("default.vert", "default.frag");
     Shader skyboxShader("skybox.vert", "skybox.frag");
-    Shader menuShader("menu.vert", "menu.frag");
 
-    // Check if menu shaders loaded correctly
-    if (!menuShader.CompiledSuccessfully())
-    {
-        std::cerr << "Error al cargar los shaders del menú!" << std::endl;
-        return -1;
-    }
+    // Create cube for menu
+    float vertices[] = {
+        // Posiciones   // Coord. Textura (asegúrate que estén en [0,1])
+       -1.0f,  1.0f,  0.0f, 1.0f,  // Superior izquierda
+       -1.0f, -1.0f,  0.0f, 0.0f,  // Inferior izquierda
+        1.0f, -1.0f,  1.0f, 0.0f,  // Inferior derecha
+
+       -1.0f,  1.0f,  0.0f, 1.0f,  // Superior izquierda
+        1.0f, -1.0f,  1.0f, 0.0f,  // Inferior derecha
+        1.0f,  1.0f,  1.0f, 1.0f   // Superior derecha
+
+    };
 
     // Light configuration
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -103,106 +119,49 @@ int main()
     skyboxShader.Activate();
     glUniform1i(glGetUniformLocation(skyboxShader.ID, "skybox"), 0);
 
-    // Configure menu quad
-    
 
-    // Datos del quad (asegúrate que sean exactamente estos)
-    float vertices[] = {
-        // Posiciones   // Coord. Textura (asegúrate que estén en [0,1])
-        -1.0f,  1.0f,  0.0f, 1.0f,  // Superior izquierda
-        -1.0f, -1.0f,  0.0f, 0.0f,  // Inferior izquierda
-         1.0f, -1.0f,  1.0f, 0.0f,  // Inferior derecha
 
-        -1.0f,  1.0f,  0.0f, 1.0f,  // Superior izquierda
-         1.0f, -1.0f,  1.0f, 0.0f,  // Inferior derecha
-         1.0f,  1.0f,  1.0f, 1.0f   // Superior derecha
-    };
-
-    GLuint quadVAO, quadVBO;// 1. Generar y bindear VAO/VBO
+    GLuint quadVAO, quadVBO;
     glGenVertexArrays(1, &quadVAO);
     glGenBuffers(1, &quadVBO);
 
-    // 2. Bindear y configurar buffers
     glBindVertexArray(quadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // 3. Configurar atributos (VERIFICAR ESTOS PARÁMETROS)
-    glEnableVertexAttribArray(0); // Posición
+    // Posiciones
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
 
-    glEnableVertexAttribArray(1); // Coordenadas de textura
+    // TexCoords
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
-    // 4. Verificar
-    GLint maxAttribs;
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttribs);
-    std::cout << "Atributos configurados (debería ser 0 y 1): ";
-    for (int i = 0; i < maxAttribs; ++i) {
-        GLint enabled;
-        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &enabled);
-        if (enabled) std::cout << i << " ";
-    }
-    std::cout << std::endl;
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // 5. Verificar configuración
-    GLint bufferSize;
-    glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufferSize);
-    std::cout << "VBO size correcto: " << bufferSize << " bytes" << std::endl;
-
-    // Load menu texture
-    // Cargar textura PNG del menú
-    // Load menu texture - Versión mejorada
+    // load menu texture
     unsigned int menuTexture;
     glGenTextures(1, &menuTexture);
     glBindTexture(GL_TEXTURE_2D, menuTexture);
-
-
-
-    // Configuración de textura más robusta
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // Cargar imagen con manejo mejorado de errores
-    // Cargar textura con verificación exhaustiva
-    std::string texturePath = "imagenes/menu.png";
-    std::cout << "Intentando cargar: " << std::filesystem::absolute(texturePath).string() << std::endl;
-
+    // load imagen
     stbi_set_flip_vertically_on_load(true);
-    int width, height, channels;
-    unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
-
-    if (!data) {
-        std::cerr << "FALLO CRÍTICO: " << stbi_failure_reason() << std::endl;
-
-        // Crear textura de emergencia (franjas rojas/blancas)
-        const int texSize = 64;
-        unsigned char debugTex[texSize * texSize * 4];
-        for (int i = 0; i < texSize * texSize * 4; i++) {
-            bool stripe = ((i / 4 % texSize) / 16) % 2 == 0;
-            debugTex[i] = (i % 4 == 3) ? 255 : (stripe ? 255 : (i % 4 == 0 ? 255 : 0));
-        }
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texSize, texSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, debugTex);
-        std::cerr << "Usando textura de debug (franjas rojas/blancas)" << std::endl;
-    }
-    else {
-        std::cout << "Textura cargada (" << width << "x" << height << ")" << std::endl;
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    int imgWidth, imgHeight, channels;
+    unsigned char* data = stbi_load("imagenes/menu.png", &imgWidth, &imgHeight, &channels, STBI_rgb_alpha);
+    if (data) {
+        std::cout << "Textura cargada correctamente. Dimensiones: " << imgWidth << "x" << imgHeight << std::endl;
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
         stbi_image_free(data);
     }
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    else {
+        std::cerr << "ERROR: No se pudo cargar 'imagenes/menu.png'. Ruta incorrecta o archivo dañado." << std::endl;
+        return -1; // Detener el programa si falla.
+    }
 
     // Enable depth test for 3D scene
-    glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     glFrontFace(GL_CCW);
@@ -216,11 +175,12 @@ int main()
     Model casa("modelos/mus3/scene.gltf", glm::vec3(1.0f));
     Model sta("modelos/sta/scene.gltf", glm::vec3(0.5f));
 
+
     // FPS variables
-    double prevTime = 0.0;
-    double crntTime = 0.0;
-    double timeDiff;
-    unsigned int counter = 0;
+   // double prevTime = 0.0;
+   // double crntTime = 0.0;
+   // double timeDiff;
+   // unsigned int counter = 0;
 
     // Skybox VAO, VBO, EBO
     unsigned int skyboxVAO, skyboxVBO, skyboxEBO;
@@ -229,9 +189,9 @@ int main()
     glGenBuffers(1, &skyboxEBO);
     glBindVertexArray(skyboxVAO);
     glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyboxEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(skyboxIndices), &skyboxIndices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(skyboxIndices), skyboxIndices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -254,7 +214,7 @@ int main()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+  //  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     stbi_set_flip_vertically_on_load(false);
     for (unsigned int i = 0; i < 6; i++)
@@ -273,88 +233,52 @@ int main()
         }
     }
 
-    // Main loop
-    while (!glfwWindowShouldClose(window))
-    {
-        processInput(window);
 
-        // Calculate FPS
-        /*crntTime = glfwGetTime();
-        timeDiff = crntTime - prevTime;
-        counter++;
-        if (timeDiff >= 1.0 / 30.0)
-        {
-            std::string FPS = std::to_string((1.0 / timeDiff) * counter);
-            std::string ms = std::to_string((timeDiff / counter) * 1000);
-            std::string newTitle = "Aplicación 3D - " + FPS + "FPS / " + ms + "ms";
-            glfwSetWindowTitle(window, newTitle.c_str());
-            prevTime = crntTime;
-            counter = 0;
-        }*/
+    // Bandera de control
+    bool menu = true;
+
+    // --- BUCLE PRINCIPAL ---
+    while (!glfwWindowShouldClose(window)) {
+        processInput(window, menu);
+
+        // Limpiar buffers
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (menu) {
-            // 1. Limpiar buffer con color de debug (ahora morado para confirmar que se ejecuta)
-            glClearColor(0.5f, 0.0f, 0.5f, 1.0f);  // Morado = debug
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            // Configuración específica para renderizado 2D
             glDisable(GL_DEPTH_TEST);
+            glDisable(GL_CULL_FACE);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-            // 2. Activar shader y verificar
+            // Renderizar menú
             menuShader.Activate();
-            std::cout << "Shader activado. ID: " << menuShader.ID << std::endl;
 
-            // 3. Bind de textura con verificación EXTRA
+            // Configurar matriz de proyección ortográfica para 2D
+            glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
+            glUniformMatrix4fv(glGetUniformLocation(menuShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, menuTexture);
-            GLint boundTexture;
-            glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundTexture);
-            std::cout << "Textura bindeada: " << boundTexture << " (debería ser: " << menuTexture << ")" << std::endl;
+            glUniform1i(glGetUniformLocation(menuShader.ID, "menuTexture"), 0);
 
-            // 4. Dibujar con verificación EXTRA del VAO
             glBindVertexArray(quadVAO);
-            GLint vaoBound;
-            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &vaoBound);
-            std::cout << "VAO bindeado: " << vaoBound << " (debería ser: " << quadVAO << ")" << std::endl;
-
-            // 5. Verificar atributos de vértice
-            GLint enabledAttribs;
-            glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &enabledAttribs);
-            std::cout << "Atributos activos: ";
-            for (GLint i = 0; i < enabledAttribs; ++i) {
-                GLint enabled;
-                glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &enabled);
-                if (enabled) std::cout << i << " ";
-            }
-            std::cout << std::endl;
-
             glDrawArrays(GL_TRIANGLES, 0, 6);
+            glBindVertexArray(0);
 
-            // 6. Verificación de errores POST-dibujo
-            bool hasError = false;
-            GLenum err;
-            while ((err = glGetError()) != GL_NO_ERROR) {
-                std::cerr << "ERROR OpenGL POST-draw: " << err << std::endl;
-                hasError = true;
-            }
-
-            if (!hasError) {
-                std::cout << "Dibujado completado sin errores OpenGL" << std::endl;
-            }
         }
-        else
-        {
-            // Render 3D scene
+        else {
+            // Configuración para renderizado 3D
             glEnable(GL_DEPTH_TEST);
-            glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glEnable(GL_CULL_FACE);
+            glDisable(GL_BLEND);
 
+            // Renderizado de escena 3D
             camera.Inputs(window);
-            camera.updateMatrix(60.0f, 0.1f, 1000.0f);
+            camera.updateMatrix(60.0f, 0.1f, 100.0f);
 
-            model.Draw(shaderProgram, camera);
-            casa.Draw(shaderProgram, camera);
-            sta.Draw(shaderProgram, camera);
-
-            // Skybox
+            // Renderizar skybox
             glDepthFunc(GL_LEQUAL);
             skyboxShader.Activate();
 
@@ -371,16 +295,21 @@ int main()
             glBindVertexArray(0);
 
             glDepthFunc(GL_LESS);
+
+            // Renderizar modelos 3D
+            shaderProgram.Activate();
+            camera.Matrix(shaderProgram, "camMatrix");
+            model.Draw(shaderProgram, camera);
+            casa.Draw(shaderProgram, camera);
+            sta.Draw(shaderProgram, camera);
         }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // Cleanup
-    shaderProgram.Delete();
-    skyboxShader.Delete();
-    menuShader.Delete();
+
+    // Limpieza
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     glDeleteTextures(1, &menuTexture);
