@@ -25,6 +25,7 @@ uniform vec3 lightPos;
 uniform vec3 camPos;
 
 
+
 vec4 pointLight()
 {	
 	// used in two variables so I calculate it here to not have to do it twice
@@ -57,11 +58,11 @@ vec4 pointLight()
 vec4 direcLight()
 {
 	// ambient lighting
-	float ambient = 0.50f;
+	float ambient = 0.9f;
 
 	// diffuse lighting
 	vec3 normal = normalize(Normal);
-	vec3 lightDirection = normalize(vec3(1.0f, 1.0f, -2.0f));
+	vec3 lightDirection = normalize(vec3(1.0f, 1.0f, 0.0f));
 	float diffuse = max(dot(normal, lightDirection), 0.0f);
 
 	// specular lighting

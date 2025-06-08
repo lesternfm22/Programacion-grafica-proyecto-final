@@ -1,0 +1,11 @@
+Model Information:
+* title:	Athena #3DST8
+* source:	https://sketchfab.com/3d-models/athena-3dst8-6e77248670c64c478ac556ba64f250aa
+* author:	Digitage (https://sketchfab.com/digitage)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Athena #3DST8" (https://sketchfab.com/3d-models/athena-3dst8-6e77248670c64c478ac556ba64f250aa) by Digitage (https://sketchfab.com/digitage) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

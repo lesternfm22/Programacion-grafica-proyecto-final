@@ -1,0 +1,11 @@
+Model Information:
+* title:	Pieta A 3D Tribute to Michelangelo's Masterpiece
+* source:	https://sketchfab.com/3d-models/pieta-a-3d-tribute-to-michelangelos-masterpiece-b94d8c93e9e947cbb29a5ebeb1dd09c4
+* author:	SUJESH NAIR (https://sketchfab.com/SujeshNair)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Pieta A 3D Tribute to Michelangelo's Masterpiece" (https://sketchfab.com/3d-models/pieta-a-3d-tribute-to-michelangelos-masterpiece-b94d8c93e9e947cbb29a5ebeb1dd09c4) by SUJESH NAIR (https://sketchfab.com/SujeshNair) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

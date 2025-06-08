@@ -1,0 +1,11 @@
+Model Information:
+* title:	The Starry Night
+* source:	https://sketchfab.com/3d-models/the-starry-night-bbe287c595a34b8ea76bf9cc9e8f0053
+* author:	amuseum (https://sketchfab.com/a_museum)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "The Starry Night" (https://sketchfab.com/3d-models/the-starry-night-bbe287c595a34b8ea76bf9cc9e8f0053) by amuseum (https://sketchfab.com/a_museum) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

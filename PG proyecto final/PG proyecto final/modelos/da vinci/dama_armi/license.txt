@@ -1,0 +1,11 @@
+Model Information:
+* title:	Lady with an Ermine
+* source:	https://sketchfab.com/3d-models/lady-with-an-ermine-a3e57222706a4a6a91811a3451abf04a
+* author:	yugengen (https://sketchfab.com/yugengen)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Lady with an Ermine" (https://sketchfab.com/3d-models/lady-with-an-ermine-a3e57222706a4a6a91811a3451abf04a) by yugengen (https://sketchfab.com/yugengen) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

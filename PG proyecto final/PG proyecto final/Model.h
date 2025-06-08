@@ -11,13 +11,20 @@ class Model
 {
 public:
 	// Loads in a model from a file and stores tha information in 'data', 'JSON', and 'file'
-	Model(const char* file, glm::vec3 customScale = glm::vec3(1.0f));
+	Model(const char* file,
+		glm::vec3 customScale = glm::vec3(1.0f),
+		glm::vec3 customTranslation = glm::vec3(0.0f),
+		glm::quat customRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
 	void Draw(Shader& shader, Camera& camera);
 	void SetScale(glm::vec3 newScale);
+	void SetTranslation(glm::vec3 newTranslation);
+	void SetRotation(glm::quat newRotation);
 
 private:
 	// Variables for easy access
+	glm::vec3 modelTranslation;
 	glm::vec3 modelScale;
+	glm::quat modelRotation;
 
 	const char* file;
 	std::vector<unsigned char> data;

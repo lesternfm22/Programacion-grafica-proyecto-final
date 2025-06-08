@@ -1,0 +1,376 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        110.75836181640625,
+        188.63673400878906,
+        77.74591827392578
+      ],
+      "min": [
+        -110.75836181640625,
+        -0.7470671534538269,
+        -77.7128677368164
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 786384,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.9999898672103882,
+        1.0,
+        0.9999951124191284
+      ],
+      "min": [
+        -0.999989926815033,
+        -0.9999997615814209,
+        -0.9999951124191284
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        1.0,
+        0.9999748468399048,
+        0.9999999403953552,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -0.9999909400939941,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.998740017414093,
+        0.9897500276565552
+      ],
+      "min": [
+        0.0009699999936856329,
+        0.0009699999936856329
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 351537,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 1572768,
+      "componentType": 5126,
+      "count": 61895,
+      "max": [
+        96.83748626708984,
+        187.03274536132813,
+        53.496116638183594
+      ],
+      "min": [
+        -98.21185302734375,
+        16.587574005126953,
+        -51.36968994140625
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 2315508,
+      "componentType": 5126,
+      "count": 61895,
+      "max": [
+        0.9998672008514404,
+        0.9999842643737793,
+        0.9999829530715942
+      ],
+      "min": [
+        -0.9999999403953552,
+        -0.9998779892921448,
+        -0.9999955296516418
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 1048512,
+      "componentType": 5126,
+      "count": 61895,
+      "max": [
+        0.9999969005584717,
+        0.9999935626983643,
+        0.9999980926513672,
+        1.0
+      ],
+      "min": [
+        -0.9999969601631165,
+        -0.9999909400939941,
+        -0.9999608993530273,
+        -1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 524256,
+      "componentType": 5126,
+      "count": 61895,
+      "max": [
+        0.9988300204277039,
+        0.999019980430603
+      ],
+      "min": [
+        0.0009699999936856329,
+        0.0009699999936856329
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 1406148,
+      "componentType": 5125,
+      "count": 312999,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "SUJESH NAIR (https://sketchfab.com/SujeshNair)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/pieta-a-3d-tribute-to-michelangelos-masterpiece-b94d8c93e9e947cbb29a5ebeb1dd09c4",
+      "title": "Pieta A 3D Tribute to Michelangelo's Masterpiece"
+    },
+    "generator": "Sketchfab-15.42.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 2658144,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1019416,
+      "byteOffset": 2658144,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3058248,
+      "byteOffset": 3677560,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2038832,
+      "byteOffset": 6735808,
+      "byteStride": 16,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 8774640,
+      "uri": "scene.bin"
+    }
+  ],
+  "extensionsUsed": [
+    "KHR_materials_specular"
+  ],
+  "images": [
+    {
+      "uri": "textures/PietaMarble_baseColor.png"
+    },
+    {
+      "uri": "textures/PietaMarble_metallicRoughness.png"
+    },
+    {
+      "uri": "textures/PietaMarble_normal.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "extensions": {
+        "KHR_materials_specular": {
+          "specularColorFactor": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "specularFactor": 0.26180605636216325
+        }
+      },
+      "name": "PietaMarble",
+      "normalTexture": {
+        "index": 2
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0.0,
+        "metallicRoughnessTexture": {
+          "index": 1
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "pietaLow20:Group45050_PietaMarble_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3
+          },
+          "indices": 4,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "pietaLow20:Group45050_PietaMarble_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 6,
+            "POSITION": 5,
+            "TANGENT": 7,
+            "TEXCOORD_0": 8
+          },
+          "indices": 9,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.009999999776482582,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "bbf3129c53b5405ea5d45c3806f4ed33.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4,
+        5
+      ],
+      "name": "pietaLow20:Group45050"
+    },
+    {
+      "mesh": 0,
+      "name": "pietaLow20:Group45050_PietaMarble_0"
+    },
+    {
+      "mesh": 1,
+      "name": "pietaLow20:Group45050_PietaMarble_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ]
+}

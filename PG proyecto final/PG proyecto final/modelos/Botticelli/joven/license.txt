@@ -1,0 +1,8 @@
+Model Information:
+* title:	Ghirlandaio's 'Portrait of a Young Woman'
+* source:	https://sketchfab.com/3d-models/ghirlandaios-portrait-of-a-young-woman-dc8e21c7fb4b4d64b822737d8cf94f53
+* author:	Minneapolis Institute of Art (https://sketchfab.com/artsmia)
+
+Model License:
+* license type:	CC0-1.0 (http://creativecommons.org/publicdomain/zero/1.0/)
+* requirements:	Credit is not mandatory. Commercial use is allowed.

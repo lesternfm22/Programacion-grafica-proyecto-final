@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Res David
+* source:	https://sketchfab.com/3d-models/low-res-david-66c3406d65d74c97951a56f8fc2d002e
+* author:	ALA (https://sketchfab.com/AlexisLarsonArt)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Res David" (https://sketchfab.com/3d-models/low-res-david-66c3406d65d74c97951a56f8fc2d002e) by ALA (https://sketchfab.com/AlexisLarsonArt) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

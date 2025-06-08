@@ -1,0 +1,11 @@
+Model Information:
+* title:	Belvedere Torso
+* source:	https://sketchfab.com/3d-models/belvedere-torso-b73aa07872074d57b895eb8b6cf7d1a4
+* author:	mikesira (https://sketchfab.com/mikesira)
+
+Model License:
+* license type:	CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions must have the same license.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Belvedere Torso" (https://sketchfab.com/3d-models/belvedere-torso-b73aa07872074d57b895eb8b6cf7d1a4) by mikesira (https://sketchfab.com/mikesira) licensed under CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)

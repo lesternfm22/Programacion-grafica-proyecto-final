@@ -1,7 +1,7 @@
 #include"Model.h"
 
-Model::Model(const char* file, glm::vec3 customScale)
-	: modelScale(customScale), file(file)
+Model::Model(const char* file, glm::vec3 customScale, glm::vec3 customTranslation, glm::quat customRotation)
+	: modelScale(customScale), modelTranslation(customTranslation), modelRotation(customRotation), file(file)
 {
 	std::string text = get_file_contents(file);
 	JSON = json::parse(text);
@@ -9,10 +9,26 @@ Model::Model(const char* file, glm::vec3 customScale)
 	traverseNode(0);
 }
 
+void Model::SetTranslation(glm::vec3 newTranslation)
+{
+	modelTranslation = newTranslation;
+	// Recalcula todas las matrices con la nueva traslación
+	matricesMeshes.clear();
+	traverseNode(0);
+}
+
 void Model::SetScale(glm::vec3 newScale)
 {
 	modelScale = newScale;
 	// Recalcula todas las matrices con la nueva escala
+	matricesMeshes.clear();
+	traverseNode(0);
+}
+
+void Model::SetRotation(glm::quat newRotation)
+{
+	modelRotation = newRotation;
+	// Recalcula todas las matrices con la nueva rotación
 	matricesMeshes.clear();
 	traverseNode(0);
 }
@@ -57,21 +73,23 @@ void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix)
 	json node = JSON["nodes"][nextNode];
 
 	// Get translation if it exists
-	glm::vec3 translation = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 translation = modelTranslation; // Usa la traslación personalizada por defecto
 	if (node.find("translation") != node.end())
 	{
 		float transValues[3];
 		for (unsigned int i = 0; i < node["translation"].size(); i++)
 			transValues[i] = (node["translation"][i]);
-		translation = glm::make_vec3(transValues);
+		translation = glm::make_vec3(transValues) + modelTranslation; // Combina con la traslación personalizada
 	}
 	// Get quaternion if it exists
 
-	glm::quat rotation = glm::quat(0.0f, 1.0f, 0.0f, 0.0f); // Identidad (sin rotación)
+	glm::quat rotation = modelRotation; // Usa la rotación personalizada por defecto
+
 	if (node.find("rotation") != node.end())
 	{
 		float rotValues[4] = { node["rotation"][3], node["rotation"][0], node["rotation"][1], node["rotation"][2] };
-		rotation = glm::normalize(glm::make_quat(rotValues));
+		glm::quat nodeRotation = glm::normalize(glm::make_quat(rotValues));
+		rotation = modelRotation * nodeRotation; // Combina las rotaciones
 	}
 
 

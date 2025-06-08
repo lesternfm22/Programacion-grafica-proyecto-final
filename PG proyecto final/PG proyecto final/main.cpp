@@ -104,6 +104,11 @@ int main() {
     }
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
     textRenderer = new TextRenderer("fonts/OpenSans.ttf", 48);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -198,10 +203,25 @@ int main() {
     // Create camera
     Camera camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f));
 
+    stbi_set_flip_vertically_on_load(false); // Important for 3D models
+
     // Load models
-    Model model("modelos/piso/scene.gltf", glm::vec3(2.0f));
-    Model casa("modelos/mus3/scene.gltf", glm::vec3(1.0f));
-    Model sta("modelos/sta/scene.gltf", glm::vec3(0.5f));
+    Model model("modelos/piso/scene.gltf", glm::vec3(2.0f), glm::vec3(0.0f, 13.0f, 0.0f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f)); // Escala normal
+    Model pit("modelos/da vinci/mona_lisa/scene.gltf", glm::vec3(0.8f), glm::vec3(3.0f, 16.5f, -4.0f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model escul("modelos/miguel ang/david2/scene.gltf", glm::vec3(0.6f), glm::vec3(-0.7f, 31.0f, 5.4f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model escul2("modelos/miguel ang/pieta/scene.gltf", glm::vec3(1.3f), glm::vec3(13.0f, 18.0f, 0.8f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+
+    Model escul3("modelos/miguel ang/moises/scene.gltf", glm::vec3(0.6f), glm::vec3(8.0f, 27.0f, -8.5f), glm::quat(0.0f, 0.0f, 1.0f, 0.0f));
+
+    Model escul4("modelos/Botticelli/joven/scene.gltf", glm::vec3(2.1f), glm::vec3(0.5f, 4.35f, -1.3f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model room("modelos/room/scene.gltf", glm::vec3(1.2f), glm::vec3(-1.0f, 3.5f, -4.0f), glm::quat(0.0f, 0.0f, 0.0f, 1.0f));
+    Model room2("modelos/room2/scene.gltf", glm::vec3(1.3f), glm::vec3(0.0f, 20.0f, 0.5f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model escul5("modelos/fidias/atena/scene.gltf", glm::vec3(0.3f), glm::vec3(-11.0f, 5.0f, 18.9f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model escul6("modelos/policleto/dori/scene.gltf", glm::vec3(0.31f), glm::vec3(-20.0f, 58.0f, 28.5f), glm::quat(0.0f, 0.0f, 1.0f, 0.0f));
+    Model escul7("modelos/praxi/afrodita/scene.gltf", glm::vec3(0.7f), glm::vec3(10.0f, -12.0f, -22.5f), glm::quat(0.0f, 0.0f, 0.0f, 1.0f));
+    Model pit2("modelos/van gogh/noche_estrella/scene.gltf", glm::vec3(0.9f), glm::vec3(-3.0f, 16.2f, -4.0f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+
+    Model escul8("modelos/torso/scene.gltf", glm::vec3(1.5f), glm::vec3(3.8f, 26.0f, 1.5f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
 
 
     // FPS variables
@@ -328,9 +348,20 @@ int main() {
             // render modelos 3D
             shaderProgram.Activate();
             camera.Matrix(shaderProgram, "camMatrix");
+
             model.Draw(shaderProgram, camera);
-            casa.Draw(shaderProgram, camera);
-            sta.Draw(shaderProgram, camera);
+            pit.Draw(shaderProgram, camera);
+            escul.Draw(shaderProgram, camera);
+            escul2.Draw(shaderProgram, camera);
+            escul3.Draw(shaderProgram, camera);
+            escul4.Draw(shaderProgram, camera);
+            //room.Draw(shaderProgram, camera);
+            room2.Draw(shaderProgram, camera);
+            escul5.Draw(shaderProgram, camera);
+            escul6.Draw(shaderProgram, camera);
+            escul7.Draw(shaderProgram, camera);
+            pit2.Draw(shaderProgram, camera);
+            escul8.Draw(shaderProgram, camera);
         }
 
         glfwSwapBuffers(window);
