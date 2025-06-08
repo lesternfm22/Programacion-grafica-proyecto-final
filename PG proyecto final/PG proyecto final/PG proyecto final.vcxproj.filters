@@ -51,6 +51,12 @@
     <ClCompile Include="VBO.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRenderer.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -77,6 +83,12 @@
     <ClInclude Include="VBO.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="Button.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRenderer.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="default.frag">
@@ -95,6 +107,18 @@
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
     <None Include="Menu.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="button.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="button.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="text.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="text.frag">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
   </ItemGroup>

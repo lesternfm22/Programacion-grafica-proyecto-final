@@ -5,10 +5,17 @@
 #include<stb/stb_image.h>
 #include "ShaderClass.h" 
 #include "Model.h"
-
+#include "TextRenderer.h"
+#include "Button.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+TextRenderer* textRenderer;
+std::vector<Button> menuButtons;
+glm::vec2 mousePos;
+bool mousePressed = false;
+bool menu = true; 
 
 
 float skyboxVertices[] =
@@ -49,17 +56,25 @@ unsigned int skyboxIndices[] =
 
 
 //  FUNCION
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
+// Función de callback para el mouse
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    mousePos = glm::vec2(xpos, ypos);
 }
 
-void processInput(GLFWwindow* window, bool& menu) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        mousePressed = (action == GLFW_PRESS);
 
-    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-        menu = false; // Salir del menú
+        if (menu && mousePressed) {
+            for (auto& button : menuButtons) {
+                if (button.IsMouseOver(mousePos)) {
+                    button.OnClick();
+                }
+            }
+        }
+    }
 }
+
 
 
 const unsigned int width = 1920;
@@ -81,7 +96,6 @@ int main() {
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Cargar funciones OpenGL
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -90,12 +104,14 @@ int main() {
     }
 
     glEnable(GL_DEPTH_TEST);
-
+    textRenderer = new TextRenderer("fonts/OpenSans.ttf", 48);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     // Load shaders
     Shader menuShader("menu.vert", "menu.frag");
     Shader shaderProgram("default.vert", "default.frag");
     Shader skyboxShader("skybox.vert", "skybox.frag");
-
+    Shader textShader("text.vert", "text.frag");
     // Create cube for menu
     float vertices[] = {
         // Posiciones   // Coord. Textura (asegúrate que estén en [0,1])
@@ -119,7 +135,19 @@ int main() {
     skyboxShader.Activate();
     glUniform1i(glGetUniformLocation(skyboxShader.ID, "skybox"), 0);
 
-
+    // Crear botones del menú
+    menuButtons.emplace_back(
+        glm::vec2(width / 2 - 100, height / 2),
+        glm::vec2(200, 50),
+        "Entrar",
+        [&]() { menu = false; } // Captura por referencia
+    );
+    menuButtons.emplace_back(
+        glm::vec2(width / 2 - 100, height / 2 + 70),
+        glm::vec2(200, 50),
+        "Salir",
+        [window]() { glfwSetWindowShouldClose(window, true); }
+    );
 
     GLuint quadVAO, quadVBO;
     glGenVertexArrays(1, &quadVAO);
@@ -158,7 +186,7 @@ int main() {
     }
     else {
         std::cerr << "ERROR: No se pudo cargar 'imagenes/menu.png'. Ruta incorrecta o archivo dañado." << std::endl;
-        return -1; // Detener el programa si falla.
+        return -1; // stop the program
     }
 
     // Enable depth test for 3D scene
@@ -214,7 +242,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  //  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    //  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     stbi_set_flip_vertically_on_load(false);
     for (unsigned int i = 0; i < 6; i++)
@@ -234,39 +262,40 @@ int main() {
     }
 
 
-    // Bandera de control
-    bool menu = true;
+
 
     // --- BUCLE PRINCIPAL ---
     while (!glfwWindowShouldClose(window)) {
-        processInput(window, menu);
+ 
 
-        // Limpiar buffers
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (menu) {
-            // Configuración específica para renderizado 2D
             glDisable(GL_DEPTH_TEST);
-            glDisable(GL_CULL_FACE);
             glEnable(GL_BLEND);
+            glDisable(GL_CULL_FACE);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-            // Renderizar menú
+            // Render background image
             menuShader.Activate();
-
-            // Configurar matriz de proyección ortográfica para 2D
-            glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
-            glUniformMatrix4fv(glGetUniformLocation(menuShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+            glm::mat4 menuProjection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+            glUniformMatrix4fv(glGetUniformLocation(menuShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(menuProjection));
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, menuTexture);
-            glUniform1i(glGetUniformLocation(menuShader.ID, "menuTexture"), 0);
-
             glBindVertexArray(quadVAO);
             glDrawArrays(GL_TRIANGLES, 0, 6);
-            glBindVertexArray(0);
 
+            // Render text and buttons
+            textShader.Activate();
+            glm::mat4 textProjection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+            glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(textProjection));
+
+            textRenderer->RenderText(textShader, "THE VIRTUAL GALLERY", width / 2 - 250, height / 4, 1.0f, glm::vec3(1.0f));
+            for (auto& button : menuButtons) {
+                button.Render(*textRenderer, textShader);
+            }
         }
         else {
             // Configuración para renderizado 3D
@@ -274,11 +303,11 @@ int main() {
             glEnable(GL_CULL_FACE);
             glDisable(GL_BLEND);
 
-            // Renderizado de escena 3D
+            // render de escena 3D
             camera.Inputs(window);
             camera.updateMatrix(60.0f, 0.1f, 100.0f);
 
-            // Renderizar skybox
+            // render skybox
             glDepthFunc(GL_LEQUAL);
             skyboxShader.Activate();
 
@@ -296,7 +325,7 @@ int main() {
 
             glDepthFunc(GL_LESS);
 
-            // Renderizar modelos 3D
+            // render modelos 3D
             shaderProgram.Activate();
             camera.Matrix(shaderProgram, "camMatrix");
             model.Draw(shaderProgram, camera);
@@ -309,7 +338,7 @@ int main() {
     }
 
 
-    // Limpieza
+    // clean
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     glDeleteTextures(1, &menuTexture);
