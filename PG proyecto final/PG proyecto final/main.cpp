@@ -15,8 +15,13 @@ TextRenderer* textRenderer;
 std::vector<Button> menuButtons;
 glm::vec2 mousePos;
 bool mousePressed = false;
-bool menu = true; 
-
+bool menu = true;
+float radio = 17.5f;
+glm::vec3 limit_min = glm::vec3(0.36923, 0.174271, 33.0354) - glm::vec3(radio, 0.174271, radio);
+glm::vec3 limit_max = glm::vec3(0.36923, 0.174271, 33.0354) + glm::vec3(radio, radio / 2, radio);
+float limits(float value, float minValue, float maxValue) {
+    return std::max(minValue, std::min(value, maxValue));
+}
 
 float skyboxVertices[] =
 {
@@ -201,7 +206,7 @@ int main() {
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // Create camera
-    Camera camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f));
+    Camera camera(width, height, glm::vec3(0.0f, 2.0f, 20.0f));
 
     stbi_set_flip_vertically_on_load(false); // Important for 3D models
 
@@ -286,7 +291,7 @@ int main() {
 
     // --- BUCLE PRINCIPAL ---
     while (!glfwWindowShouldClose(window)) {
- 
+
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -326,7 +331,16 @@ int main() {
             // render de escena 3D
             camera.Inputs(window);
             camera.updateMatrix(60.0f, 0.1f, 100.0f);
-
+            camera.Position.x = limits(camera.Position.x, limit_min.x, limit_max.x);
+            camera.Position.y = limits(camera.Position.y, limit_min.y, limit_max.y);
+            camera.Position.z = limits(camera.Position.z, limit_min.z, limit_max.z);
+            camera.AddCollider(glm::vec3(0.3201, 3.97696, 32.9264), 4.5f);
+            camera.AddCollider(glm::vec3(-13.9183, 2.28625, 18.5213), 4.5f);
+            camera.AddCollider(glm::vec3(16.4938, 3.65387, 16.5488), 2.5f);
+            camera.AddCollider(glm::vec3(14.8127, 3.80944, 49.5978), 2.5f);
+            camera.AddCollider(glm::vec3(8.51457, 2.15766, 49.942), 2.5f);
+            camera.AddCollider(glm::vec3(-8.46455, 1.67231, 50.2564), 2.5f);
+            camera.AddCollider(glm::vec3(-16.9746, 2.62017, 45.6913), 2.5f);
             // render skybox
             glDepthFunc(GL_LEQUAL);
             skyboxShader.Activate();
@@ -347,6 +361,10 @@ int main() {
 
             // render modelos 3D
             shaderProgram.Activate();
+            /*std::cout << "Position: (" <<
+                camera.Position.x << ", " <<
+                camera.Position.y << ", " <<
+                camera.Position.z << ")\n";*/
             camera.Matrix(shaderProgram, "camMatrix");
 
             model.Draw(shaderProgram, camera);

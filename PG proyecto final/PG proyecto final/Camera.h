@@ -37,6 +37,9 @@ public:
 	// Camera constructor to set up initial values
 	Camera(int width, int height, glm::vec3 position);
 
+	glm::vec3 ResolveCollision(glm::vec3 desiredPos);
+	bool IsColliding(glm::vec3 newPosition);
+	void AddCollider(glm::vec3 position, float radius);
 	// Updates the camera matrix to the Vertex Shader
 	void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
 	// Exports the camera matrix to a shader
