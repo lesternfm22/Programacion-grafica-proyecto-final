@@ -1,0 +1,11 @@
+Model Information:
+* title:	Flower Bouquet
+* source:	https://sketchfab.com/3d-models/flower-bouquet-bee4f7b602904024826d6e49ddb95ad5
+* author:	flippednormal (https://sketchfab.com/flippednormal)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Flower Bouquet" (https://sketchfab.com/3d-models/flower-bouquet-bee4f7b602904024826d6e49ddb95ad5) by flippednormal (https://sketchfab.com/flippednormal) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

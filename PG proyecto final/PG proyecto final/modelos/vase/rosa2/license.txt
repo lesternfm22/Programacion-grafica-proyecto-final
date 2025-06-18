@@ -1,0 +1,11 @@
+Model Information:
+* title:	Zinnias in a decorated tile vase
+* source:	https://sketchfab.com/3d-models/zinnias-in-a-decorated-tile-vase-ad30d051cc274224b29c11f371cf5b40
+* author:	Advanced Visualization Lab - Indiana University (https://sketchfab.com/AVL)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Zinnias in a decorated tile vase" (https://sketchfab.com/3d-models/zinnias-in-a-decorated-tile-vase-ad30d051cc274224b29c11f371cf5b40) by Advanced Visualization Lab - Indiana University (https://sketchfab.com/AVL) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

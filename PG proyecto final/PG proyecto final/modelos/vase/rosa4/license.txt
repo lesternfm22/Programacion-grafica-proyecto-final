@@ -1,0 +1,11 @@
+Model Information:
+* title:	Flower in flower pot
+* source:	https://sketchfab.com/3d-models/flower-in-flower-pot-cae5718e1fe3483a859eba50ff01aa07
+* author:	Harryfolwell (https://sketchfab.com/Harryfolwell)
+
+Model License:
+* license type:	CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions must have the same license.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Flower in flower pot" (https://sketchfab.com/3d-models/flower-in-flower-pot-cae5718e1fe3483a859eba50ff01aa07) by Harryfolwell (https://sketchfab.com/Harryfolwell) licensed under CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)

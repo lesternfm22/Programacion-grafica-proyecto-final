@@ -228,6 +228,15 @@ int main() {
 
     Model escul8("modelos/torso/scene.gltf", glm::vec3(1.5f), glm::vec3(3.8f, 26.0f, 1.5f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
 
+    Model pilar("modelos/pilar/scene.gltf", glm::vec3(0.09f), glm::vec3(-16.0f, 28.0f, 0.9f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model pilar2("modelos/pilar/scene.gltf", glm::vec3(0.09f), glm::vec3(-16.0f, 42.0f, 0.9f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model pilar3("modelos/pilar/scene.gltf", glm::vec3(0.09f), glm::vec3(16.0f, 28.0f, 0.9f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model pilar4("modelos/pilar/scene.gltf", glm::vec3(0.09f), glm::vec3(16.0f, 42.0f, 0.9f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model vase("modelos/vase/rosa1/scene.gltf", glm::vec3(1.8f), glm::vec3(-3.0f, 10.5f, -1.6f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model vase2("modelos/vase/rosa2/scene.gltf", glm::vec3(0.7f), glm::vec3(-8.0f, 51.3f, -12.4f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model vase3("modelos/vase/rosa3/scene.gltf", glm::vec3(1.5f), glm::vec3(-15.5f, 26.4f, 4.1f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+    Model vase4("modelos/vase/rosa4/scene.gltf", glm::vec3(1.5f), glm::vec3(3.7f, 22.0f, -2.3f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
+
 
     // FPS variables
    // double prevTime = 0.0;
@@ -380,6 +389,15 @@ int main() {
             escul7.Draw(shaderProgram, camera);
             pit2.Draw(shaderProgram, camera);
             escul8.Draw(shaderProgram, camera);
+
+            pilar.Draw(shaderProgram, camera);
+            pilar2.Draw(shaderProgram, camera);
+            pilar3.Draw(shaderProgram, camera);
+            pilar4.Draw(shaderProgram, camera);
+            vase.Draw(shaderProgram, camera);
+            vase2.Draw(shaderProgram, camera);
+            vase3.Draw(shaderProgram, camera);
+            vase4.Draw(shaderProgram, camera);
         }
 
         glfwSwapBuffers(window);
