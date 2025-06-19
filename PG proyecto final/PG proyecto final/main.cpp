@@ -10,7 +10,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "AudioManager.h"
 
+
+bool musicStarted = false;
+std::string currentMusic = "";
 TextRenderer* textRenderer;
 std::vector<Button> menuButtons;
 glm::vec2 mousePos;
@@ -80,6 +84,20 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
 }
 
+std::vector<std::string> envSongs = {
+    //"Sound/environment.mp3",
+    "Sound/env1.mp3",
+    "Sound/env2.mp3",
+    "Sound/env3.mp3"
+};
+
+std::string pickRandomSong(const std::vector<std::string>& songs) {
+    if (songs.empty()) return "";
+    int index = rand() % songs.size();
+    return songs[index];
+}
+
+
 
 
 const unsigned int width = 1920;
@@ -92,6 +110,12 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    
+    srand(static_cast<unsigned int>(time(nullptr)));
+    AudioManager Sound;
+     // Esta es mi musica de fondo, en el AudioManager.cpp se configura para que se repita varias veces xd
+    Sound.setMusicVolume(1.0f); // Este y el de abajo me configuran el volumen de los sonidos, este para la musica de fondo
+    Sound.setEffectsVolume(0.0f);
 
     // Create window
     GLFWwindow* window = glfwCreateWindow(width, height, "The Virtual Gallery", NULL, NULL);
@@ -207,6 +231,7 @@ int main() {
 
     // Create camera
     Camera camera(width, height, glm::vec3(0.0f, 2.0f, 20.0f));
+    camera.setAudioManager(&Sound);
 
     stbi_set_flip_vertically_on_load(false); // Important for 3D models
 
@@ -304,12 +329,18 @@ int main() {
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        static bool inEnvironment = false;
+        
 
         if (menu) {
             glDisable(GL_DEPTH_TEST);
             glEnable(GL_BLEND);
             glDisable(GL_CULL_FACE);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            if (currentMusic != "Sound/MenuSound.mp3") {
+                Sound.playBackgroundMusic("Sound/MenuSound.mp3", 1.0f);
+                currentMusic = "Sound/MenuSound.mp3";
+            }
 
             // Render background image
             menuShader.Activate();
@@ -337,6 +368,30 @@ int main() {
             glEnable(GL_CULL_FACE);
             glDisable(GL_BLEND);
 
+            if (!inEnvironment) {
+                std::string randomSong = pickRandomSong(envSongs);
+                Sound.playBackgroundMusic(randomSong, 1.0f);
+                currentMusic = "ENVIRONMENT";
+                inEnvironment = true;
+            }
+            else {
+                // Si la música terminó, reproducimos otra
+                if (!Sound.getBackgroundMusic() || Sound.getBackgroundMusic()->isFinished()) {
+                    std::string randomSong = pickRandomSong(envSongs);
+                    Sound.playBackgroundMusic(randomSong, 1.0f);
+                }
+            }
+
+            if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && !menu) {
+                menu = true;
+                inEnvironment = false;
+
+                // Opcional: detener la música actual
+                if (Sound.getBackgroundMusic()) {
+                    Sound.getBackgroundMusic()->stop();
+                }
+            }
+
             // render de escena 3D
             camera.Inputs(window);
             camera.updateMatrix(60.0f, 0.1f, 100.0f);
@@ -350,6 +405,10 @@ int main() {
             camera.AddCollider(glm::vec3(8.51457, 2.15766, 49.942), 2.5f);
             camera.AddCollider(glm::vec3(-8.46455, 1.67231, 50.2564), 2.5f);
             camera.AddCollider(glm::vec3(-16.9746, 2.62017, 45.6913), 2.5f);
+            camera.AddCollider(glm::vec3(-17.1125, 2.5, 25.5523), 1.5f);
+            camera.AddCollider(glm::vec3(-17.1308, 2.5, 38.5671), 1.1f);
+            camera.AddCollider(glm::vec3(17.507, 2.5, 25.7276),1.1f);
+            camera.AddCollider(glm::vec3(17.1492, 2.5, 38.6279), 1.1f);
             // render skybox
             glDepthFunc(GL_LEQUAL);
             skyboxShader.Activate();
@@ -370,7 +429,7 @@ int main() {
 
             // render modelos 3D
             shaderProgram.Activate();
-            /*std::cout << "Position: (" <<
+           /* std::cout << "Position: (" <<
                 camera.Position.x << ", " <<
                 camera.Position.y << ", " <<
                 camera.Position.z << ")\n";*/

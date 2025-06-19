@@ -8,6 +8,7 @@
 #include<glm/gtc/type_ptr.hpp>
 #include<glm/gtx/rotate_vector.hpp>
 #include<glm/gtx/vector_angle.hpp>
+#include "AudioManager.h"
 
 #include"shaderClass.h"
 
@@ -19,6 +20,13 @@ public:
 	glm::vec3 Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::mat4 cameraMatrix = glm::mat4(1.0f);
+
+	bool isMoving = false;
+	AudioManager* audioManager = nullptr;
+	float lastFootstepTime = 0.0f;
+	float footstepCooldown = 0.25f; // en segundos
+	void setAudioManager(AudioManager* manager) { audioManager = manager; }
+
 
 	// Prevents the camera from jumping around when first clicking left click
 	bool firstClick = true;

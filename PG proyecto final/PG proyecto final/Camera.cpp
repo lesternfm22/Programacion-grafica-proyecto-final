@@ -1,6 +1,8 @@
 #include"Camera.h"
 #include <glm/gtx/norm.hpp> 
 #include <vector>
+#include "AudioManager.h"
+
 
 struct CollisionObject {
     glm::vec3 position;
@@ -92,15 +94,35 @@ void Camera::Inputs(GLFWwindow* window)
     forward = glm::normalize(forward);
 
     glm::vec3 right = glm::normalize(glm::cross(forward, Up));
+   
+    bool moved = false;
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         desiredPosition += speed * forward;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        moved = true;
+    }else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
         desiredPosition -= speed * right;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        moved = true;
+    }else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
         desiredPosition -= speed * forward;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        moved = true;
+    }else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         desiredPosition += speed * right;
+        moved = true;
+    }else{
+        moved = false;
+    }
+
+    if (audioManager) {
+        if (moved && !isMoving) {
+            audioManager->playFootstepLoop();
+            isMoving = true;
+        }
+        else if (!moved && isMoving) {
+            audioManager->stopFootstepLoop();
+            isMoving = false;
+        }
+    }
 
     if (IsColliding(desiredPosition)) {
         Position = ResolveCollision(desiredPosition);
