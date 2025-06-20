@@ -74,6 +74,15 @@ TextRenderer::TextRenderer(const std::string& fontPath, int fontSize) {
     glBindVertexArray(0);
 }
 
+float TextRenderer::CalculateTextWidth(const std::string& text, float scale) {
+    float width = 0.0f;
+    for (const char& c : text) {
+        Character ch = Characters[c];
+        width += (ch.Advance >> 6) * scale;
+    }
+    return width;
+}
+
 void TextRenderer::RenderText(Shader& shader, const std::string& text, float x, float y, float scale, glm::vec3 color) {
     shader.Activate();
     glUniform3f(glGetUniformLocation(shader.ID, "textColor"), color.x, color.y, color.z);

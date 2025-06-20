@@ -47,7 +47,10 @@ public:
 
 	glm::vec3 ResolveCollision(glm::vec3 desiredPos);
 	bool IsColliding(glm::vec3 newPosition);
-	void AddCollider(glm::vec3 position, float radius);
+	void AddCollider(glm::vec3 position, float radius,
+		std::string collisionTitle = "",
+		std::string collisionText = "");
+
 	// Updates the camera matrix to the Vertex Shader
 	void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
 	// Exports the camera matrix to a shader

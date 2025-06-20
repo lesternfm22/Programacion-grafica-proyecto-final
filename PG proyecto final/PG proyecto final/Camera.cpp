@@ -3,13 +3,22 @@
 #include <vector>
 #include "AudioManager.h"
 
+extern void showModelInfo(const std::string& title, const std::string& description);
+extern void hideModelInfo();
 
 struct CollisionObject {
     glm::vec3 position;
     float radius;
+    std::string collisionTitle;
+    std::string collisionText;
 
-    CollisionObject(glm::vec3 pos, float rad) : position(pos), radius(rad) {}
+    CollisionObject(glm::vec3 pos, float rad,
+        std::string title, std::string text)
+        : position(pos), radius(rad),
+        collisionTitle(title), collisionText(text) {
+    }
 };
+
 
 std::vector<CollisionObject> obstacles;
 float collisionRadius = 0.98f;
@@ -21,12 +30,17 @@ Camera::Camera(int width, int height, glm::vec3 position)
     Position = position;
 }
 
-void Camera::AddCollider(glm::vec3 position, float radius) {
-    obstacles.push_back(CollisionObject(position, radius));
+void Camera::AddCollider(glm::vec3 position, float radius,
+    std::string collisionTitle,
+    std::string collisionText)
+{
+    obstacles.push_back(CollisionObject(position, radius, collisionTitle, collisionText));
 }
+
 
 bool Camera::IsColliding(glm::vec3 newPosition) {
     const float EPSILON = 0.001f;
+    bool collisionDetected = false;
 
     for (const auto& obstacle : obstacles) {
         glm::vec3 diff = newPosition - obstacle.position;
@@ -35,10 +49,19 @@ bool Camera::IsColliding(glm::vec3 newPosition) {
         float minDistanceSq = minDistance * minDistance;
 
         if (distanceSq < minDistanceSq) {
-            return true;
+            if (!obstacle.collisionTitle.empty() || !obstacle.collisionText.empty()) {
+                showModelInfo(obstacle.collisionTitle, obstacle.collisionText);
+            }
+            collisionDetected = true;
+            break; // Mostramos solo la primera colisión detectada
         }
     }
-    return false;
+
+    if (!collisionDetected) {
+        hideModelInfo();
+    }
+
+    return collisionDetected;
 }
 
 // Si hay colisión, ajusta la posición para que no atraviese el objeto

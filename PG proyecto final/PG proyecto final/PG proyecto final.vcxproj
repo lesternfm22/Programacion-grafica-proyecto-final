@@ -183,6 +183,8 @@
     <None Include="default.vert" />
     <None Include="Menu.frag" />
     <None Include="Menu.vert" />
+    <None Include="panel.frag" />
+    <None Include="panel.vert" />
     <None Include="skybox.frag" />
     <None Include="skybox.vert" />
     <None Include="text.frag" />

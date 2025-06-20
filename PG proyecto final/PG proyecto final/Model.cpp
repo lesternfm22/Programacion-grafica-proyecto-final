@@ -9,13 +9,7 @@ Model::Model(const char* file, glm::vec3 customScale, glm::vec3 customTranslatio
 	traverseNode(0);
 }
 
-void Model::SetTranslation(glm::vec3 newTranslation)
-{
-	modelTranslation = newTranslation;
-	// Recalcula todas las matrices con la nueva traslación
-	matricesMeshes.clear();
-	traverseNode(0);
-}
+
 
 void Model::SetScale(glm::vec3 newScale)
 {

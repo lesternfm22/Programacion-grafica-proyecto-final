@@ -1,41 +1,74 @@
-#include <glad/glad.h>
+Ôªø#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <filesystem>
 #include<stb/stb_image.h>
-#include "ShaderClass.h" 
+#include <vector>
+#include <string>
+#include <limits>
+#include "ShaderClass.h"
 #include "Model.h"
 #include "TextRenderer.h"
 #include "Button.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "AudioManager.h"
+#include "AudioManager.h" 
 
+// Estructura para informaci√≥n de modelos
+struct ModelInfo {
+    Model* model;
+    std::string title;
+    std::string description;
+    float triggerDistance;
+};
 
 bool musicStarted = false;
+bool showHelp = false;
+bool showCredits = false; 
+bool showModelInfoFlag = false;
+std::string currentModelTitle;
+std::string currentModelDescription;
 std::string currentMusic = "";
 TextRenderer* textRenderer;
+TextRenderer* textRenderer2;
 std::vector<Button> menuButtons;
+std::vector<ModelInfo> exhibitModels;
 glm::vec2 mousePos;
 bool mousePressed = false;
 bool menu = true;
 float radio = 17.5f;
 glm::vec3 limit_min = glm::vec3(0.36923, 0.174271, 33.0354) - glm::vec3(radio, 0.174271, radio);
 glm::vec3 limit_max = glm::vec3(0.36923, 0.174271, 33.0354) + glm::vec3(radio, radio / 2, radio);
+
+Button backButtonHelp(
+    glm::vec2(20, 20),
+    glm::vec2(300, 70),
+    "REGRESAR",
+    [&]() { showHelp = false; }
+);
+
+Button backButtonCredits(
+    glm::vec2(20, 20),
+    glm::vec2(300, 70),
+    "REGRESAR",
+    [&]() { showCredits = false; }
+);
+
+//Funciones
 float limits(float value, float minValue, float maxValue) {
     return std::max(minValue, std::min(value, maxValue));
 }
 
 float skyboxVertices[] =
 {
-    //   Coordinates
+    // Coordinates
    -1.0f, -1.0f,  1.0f,//        7--------6
-    1.0f, -1.0f,  1.0f,//       /|       /|
-    1.0f, -1.0f, -1.0f,//      4--------5 |
-   -1.0f, -1.0f, -1.0f,//      | |      | |
-   -1.0f,  1.0f,  1.0f,//      | 3------|-2
-    1.0f,  1.0f,  1.0f,//      |/       |/
+    1.0f, -1.0f,  1.0f,//       /|        /|
+    1.0f, -1.0f, -1.0f,//      4--------5  |
+   -1.0f, -1.0f, -1.0f,//      | |       | |
+   -1.0f,  1.0f,  1.0f,//      | 3-------|-2
+    1.0f,  1.0f,  1.0f,//      |/        |/
     1.0f,  1.0f, -1.0f,//      0--------1
    -1.0f,  1.0f, -1.0f
 
@@ -63,9 +96,8 @@ unsigned int skyboxIndices[] =
     7, 6, 2
 };
 
-
 //  FUNCION
-// FunciÛn de callback para el mouse
+// Funci√≥n de callback para el mouse
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     mousePos = glm::vec2(xpos, ypos);
 }
@@ -74,16 +106,168 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         mousePressed = (action == GLFW_PRESS);
 
-        if (menu && mousePressed) {
-            for (auto& button : menuButtons) {
-                if (button.IsMouseOver(mousePos)) {
-                    button.OnClick();
+        if (mousePressed) {
+            if (menu && !showHelp && !showCredits) {
+                for (auto& btn : menuButtons) {
+                    if (btn.IsMouseOver(mousePos)) {
+                        btn.OnClick(mousePos);
+                    }
+                }
+            }
+            else if (showHelp) { 
+                if (backButtonHelp.IsMouseOver(mousePos)) {
+                    backButtonHelp.OnClick(mousePos);
+                }
+            }
+            else if (showCredits) { 
+                if (backButtonCredits.IsMouseOver(mousePos)) {
+                    backButtonCredits.OnClick(mousePos);
                 }
             }
         }
     }
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        if (!menu && !showHelp && !showCredits) { 
+            menu = true;
+        }
+        else if (showHelp) { 
+            showHelp = false;
+        }
+        else if (showCredits) {
+            showCredits = false;
+        }
+    }
+}
+
+
+void showModelInfo(const std::string& title, const std::string& description) {
+    showModelInfoFlag = true;
+    currentModelTitle = title;
+    currentModelDescription = description;
+}
+
+void hideModelInfo() {
+    showModelInfoFlag = false;
+}
+
+bool isInExhibitZone(glm::vec3 cameraPos, glm::vec3 modelPos) {
+   
+    float zoneWidth = 5.0f;
+    float zoneDepth = 5.0f;
+
+    return (cameraPos.x > modelPos.x - zoneWidth / 2 &&
+        cameraPos.x < modelPos.x + zoneWidth / 2 &&
+        cameraPos.z > modelPos.z - zoneDepth / 2 &&
+        cameraPos.z < modelPos.z + zoneDepth / 2);
+}
+
+
+void checkModelProximity(Camera& camera, std::vector<ModelInfo>& exhibitModels) {
+    static ModelInfo* lastNearbyModel = nullptr;
+
+    ModelInfo* nearestModel = nullptr;
+    float minHorizontalDist = std::numeric_limits<float>::max();
+
+    for (auto& modelInfo : exhibitModels) {
+
+        glm::vec2 cameraPosXZ(camera.Position.x, camera.Position.z);
+        glm::vec2 modelPosXZ(modelInfo.model->GetPosition().x, modelInfo.model->GetPosition().z);
+        float horizontalDist = glm::distance(cameraPosXZ, modelPosXZ);
+
+        if (horizontalDist < modelInfo.triggerDistance) {
+            if (horizontalDist < minHorizontalDist) {
+                minHorizontalDist = horizontalDist;
+                nearestModel = &modelInfo;
+            }
+        }
+    }
+
+    if (nearestModel != lastNearbyModel) {
+        if (lastNearbyModel) {
+            hideModelInfo();
+        }
+
+        if (nearestModel) {
+            showModelInfo(nearestModel->title, nearestModel->description);
+        }
+        lastNearbyModel = nearestModel;
+    }
+}
+
+void renderModelInfo(TextRenderer& textRenderer, Shader& textShader, int width, int height) {
+    if (!showModelInfoFlag) return;
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    float panelWidth = 1900.0f;
+    float panelHeight = 200.0f;
+    float margin = 20.0f;
+
+    Shader panelShader("panel.vert", "panel.frag");
+    panelShader.Activate();
+    glm::mat4 projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+    glUniformMatrix4fv(glGetUniformLocation(panelShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    glUniform4f(glGetUniformLocation(panelShader.ID, "backgroundColor"), 0.1f, 0.1f, 0.1f, 0.9f); 
+
+    
+    float panelX = margin;
+    float panelY = height - panelHeight - margin;
+    float vertices[] = {
+        panelX, panelY + panelHeight, 0.0f, 0.0f, 1.0f, 
+        panelX, panelY, 0.0f, 0.0f, 0.0f,               
+        panelX + panelWidth, panelY, 0.0f, 1.0f, 0.0f,    
+
+        panelX, panelY + panelHeight, 0.0f, 0.0f, 1.0f, 
+        panelX + panelWidth, panelY, 0.0f, 1.0f, 0.0f,   
+        panelX + panelWidth, panelY + panelHeight, 0.0f, 1.0f, 1.0f  
+    };
+
+    unsigned int VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+
+    textShader.Activate();
+    glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    float scale = 0.8f;
+    float yPos = height - panelHeight + margin;
+
+    // T√≠tulo
+    textRenderer.RenderText(textShader, currentModelTitle,
+        margin + 10.0f, yPos + 10.0f, 
+        scale * 1.2f, glm::vec3(1.0f, 1.0f, 1.0f)); 
+
+    // Descripci√≥n
+    yPos += 60.0f;
+    textRenderer.RenderText(textShader, currentModelDescription,
+        margin + 10.0f, yPos + 10.0f,
+        scale * 0.7f, glm::vec3(0.9f, 0.9f, 0.9f)); 
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+}
+
+//M√∫sica y Sonido
 std::vector<std::string> envSongs = {
     //"Sound/environment.mp3",
     "Sound/env1.mp3",
@@ -97,9 +281,6 @@ std::string pickRandomSong(const std::vector<std::string>& songs) {
     return songs[index];
 }
 
-
-
-
 const unsigned int width = 1920;
 const unsigned int height = 1080;
 
@@ -110,15 +291,14 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    
+
     srand(static_cast<unsigned int>(time(nullptr)));
     AudioManager Sound;
-     // Esta es mi musica de fondo, en el AudioManager.cpp se configura para que se repita varias veces xd
-    Sound.setMusicVolume(1.0f); // Este y el de abajo me configuran el volumen de los sonidos, este para la musica de fondo
+    Sound.setMusicVolume(1.0f);
     Sound.setEffectsVolume(0.0f);
 
     // Create window
-    GLFWwindow* window = glfwCreateWindow(width, height, "The Virtual Gallery", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(width, height, "The Virtual Gallery", glfwGetPrimaryMonitor(), NULL);
     if (!window) {
         std::cerr << "ERROR al crear la ventana GLFW" << std::endl;
         glfwTerminate();
@@ -138,17 +318,54 @@ int main() {
     glFrontFace(GL_CCW);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    textRenderer = new TextRenderer("fonts/OpenSans.ttf", 48);
+    textRenderer = new TextRenderer("fonts/Caprasimo.ttf", 78);
+    textRenderer2 = new TextRenderer("fonts/Moodcake.ttf", 78);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetKeyCallback(window, key_callback);
+
     // Load shaders
     Shader menuShader("menu.vert", "menu.frag");
     Shader shaderProgram("default.vert", "default.frag");
     Shader skyboxShader("skybox.vert", "skybox.frag");
     Shader textShader("text.vert", "text.frag");
-    // Create cube for menu
+
+    // Configuracion de botones del menu
+    menuButtons.emplace_back(
+        glm::vec2(width / 2 - 150, height / 2),
+        glm::vec2(300, 60),
+        "ENTRAR",
+        [&]() { menu = false; }
+    );
+
+    menuButtons.emplace_back(
+        glm::vec2(width / 2 - 150, height / 2 + 80),
+        glm::vec2(300, 60),
+        "AYUDA",
+        [&]() { showHelp = true; }
+    );
+
+    menuButtons.emplace_back( 
+        glm::vec2(width / 2 - 150, height / 2 + 160),
+        glm::vec2(300, 60),
+        "CREDITOS",
+        [&]() { showCredits = true; }
+    );
+
+    menuButtons.emplace_back(
+        glm::vec2(width / 2 - 150, height / 2 + 240),
+        glm::vec2(300, 60),
+        "SALIR",
+        [window]() { glfwSetWindowShouldClose(window, true); }
+    );
+
+    // Configuracion de geometria para menu y pantallas 2D
+    GLuint quadVAO, quadVBO;
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+
     float vertices[] = {
-        // Posiciones   // Coord. Textura (aseg˙rate que estÈn en [0,1])
+        // Posiciones   // Coord. Textura
        -1.0f,  1.0f,  0.0f, 1.0f,  // Superior izquierda
        -1.0f, -1.0f,  0.0f, 0.0f,  // Inferior izquierda
         1.0f, -1.0f,  1.0f, 0.0f,  // Inferior derecha
@@ -156,7 +373,6 @@ int main() {
        -1.0f,  1.0f,  0.0f, 1.0f,  // Superior izquierda
         1.0f, -1.0f,  1.0f, 0.0f,  // Inferior derecha
         1.0f,  1.0f,  1.0f, 1.0f   // Superior derecha
-
     };
 
     // Light configuration
@@ -169,38 +385,20 @@ int main() {
     skyboxShader.Activate();
     glUniform1i(glGetUniformLocation(skyboxShader.ID, "skybox"), 0);
 
-    // Crear botones del men˙
-    menuButtons.emplace_back(
-        glm::vec2(width / 2 - 100, height / 2),
-        glm::vec2(200, 50),
-        "Entrar",
-        [&]() { menu = false; } // Captura por referencia
-    );
-    menuButtons.emplace_back(
-        glm::vec2(width / 2 - 100, height / 2 + 70),
-        glm::vec2(200, 50),
-        "Salir",
-        [window]() { glfwSetWindowShouldClose(window, true); }
-    );
-
-    GLuint quadVAO, quadVBO;
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
 
     glBindVertexArray(quadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
     // Posiciones
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
     // TexCoords
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // load menu texture
-    unsigned int menuTexture;
+
+    // load image
+    unsigned int menuTexture, helpTexture;
     glGenTextures(1, &menuTexture);
     glBindTexture(GL_TEXTURE_2D, menuTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -208,51 +406,55 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // load imagen
     stbi_set_flip_vertically_on_load(true);
     int imgWidth, imgHeight, channels;
-    unsigned char* data = stbi_load("imagenes/menu.png", &imgWidth, &imgHeight, &channels, STBI_rgb_alpha);
+    unsigned char* data = stbi_load("imagenes/pru.jpg", &imgWidth, &imgHeight, &channels, STBI_rgb_alpha);
     if (data) {
-        std::cout << "Textura cargada correctamente. Dimensiones: " << imgWidth << "x" << imgHeight << std::endl;
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
         stbi_image_free(data);
     }
     else {
-        std::cerr << "ERROR: No se pudo cargar 'imagenes/menu.png'. Ruta incorrecta o archivo daÒado." << std::endl;
-        return -1; // stop the program
+        std::cerr << "ERROR: No se pudo cargar la textura del men√∫ (pru.jpg)" << std::endl;
+        return -1;
     }
 
-    // Enable depth test for 3D scene
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
-    glFrontFace(GL_CCW);
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    glGenTextures(1, &helpTexture);
+    glBindTexture(GL_TEXTURE_2D, helpTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unsigned char* helpData = stbi_load("imagenes/menu.png", &imgWidth, &imgHeight, &channels, STBI_rgb_alpha);
+    if (helpData) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, helpData);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(helpData);
+    }
+    else {
+        std::cerr << "ERROR: No se pudo cargar la imagen de ayuda (menu.png)" << std::endl;
+    }
 
     // Create camera
-    Camera camera(width, height, glm::vec3(0.0f, 2.0f, 20.0f));
+    Camera camera(width, height, glm::vec3(4.0f, 2.0f, 20.0f));
     camera.setAudioManager(&Sound);
 
     stbi_set_flip_vertically_on_load(false); // Important for 3D models
 
-    // Load models
-    Model model("modelos/piso/scene.gltf", glm::vec3(2.0f), glm::vec3(0.0f, 13.0f, 0.0f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f)); // Escala normal
+    // Load models 
+    Model model("modelos/piso/scene.gltf", glm::vec3(2.0f), glm::vec3(0.0f, 13.0f, 0.0f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model pit("modelos/da vinci/mona_lisa/scene.gltf", glm::vec3(0.8f), glm::vec3(3.0f, 16.5f, -4.0f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model escul("modelos/miguel ang/david2/scene.gltf", glm::vec3(0.6f), glm::vec3(-0.7f, 31.0f, 5.4f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model escul2("modelos/miguel ang/pieta/scene.gltf", glm::vec3(1.3f), glm::vec3(13.0f, 18.0f, 0.8f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
-
     Model escul3("modelos/miguel ang/moises/scene.gltf", glm::vec3(0.6f), glm::vec3(8.0f, 27.0f, -8.5f), glm::quat(0.0f, 0.0f, 1.0f, 0.0f));
-
     Model escul4("modelos/Botticelli/joven/scene.gltf", glm::vec3(2.1f), glm::vec3(0.5f, 4.35f, -1.3f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
-    Model room("modelos/room/scene.gltf", glm::vec3(1.2f), glm::vec3(-1.0f, 3.5f, -4.0f), glm::quat(0.0f, 0.0f, 0.0f, 1.0f));
     Model room2("modelos/room2/scene.gltf", glm::vec3(1.3f), glm::vec3(0.0f, 20.0f, 0.5f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model escul5("modelos/fidias/atena/scene.gltf", glm::vec3(0.3f), glm::vec3(-11.0f, 5.0f, 18.9f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model escul6("modelos/policleto/dori/scene.gltf", glm::vec3(0.31f), glm::vec3(-20.0f, 58.0f, 28.5f), glm::quat(0.0f, 0.0f, 1.0f, 0.0f));
     Model escul7("modelos/praxi/afrodita/scene.gltf", glm::vec3(0.7f), glm::vec3(10.0f, -12.0f, -22.5f), glm::quat(0.0f, 0.0f, 0.0f, 1.0f));
     Model pit2("modelos/van gogh/noche_estrella/scene.gltf", glm::vec3(0.9f), glm::vec3(-3.0f, 16.2f, -4.0f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
-
     Model escul8("modelos/torso/scene.gltf", glm::vec3(1.5f), glm::vec3(3.8f, 26.0f, 1.5f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
-
     Model pilar("modelos/pilar/scene.gltf", glm::vec3(0.09f), glm::vec3(-16.0f, 28.0f, 0.9f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model pilar2("modelos/pilar/scene.gltf", glm::vec3(0.09f), glm::vec3(-16.0f, 42.0f, 0.9f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model pilar3("modelos/pilar/scene.gltf", glm::vec3(0.09f), glm::vec3(16.0f, 28.0f, 0.9f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
@@ -261,13 +463,6 @@ int main() {
     Model vase2("modelos/vase/rosa2/scene.gltf", glm::vec3(0.7f), glm::vec3(-8.0f, 51.3f, -12.4f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model vase3("modelos/vase/rosa3/scene.gltf", glm::vec3(1.5f), glm::vec3(-15.5f, 26.4f, 4.1f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model vase4("modelos/vase/rosa4/scene.gltf", glm::vec3(1.5f), glm::vec3(3.7f, 22.0f, -2.3f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
-
-
-    // FPS variables
-   // double prevTime = 0.0;
-   // double crntTime = 0.0;
-   // double timeDiff;
-   // unsigned int counter = 0;
 
     // Skybox VAO, VBO, EBO
     unsigned int skyboxVAO, skyboxVBO, skyboxEBO;
@@ -301,7 +496,6 @@ int main() {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    //  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     stbi_set_flip_vertically_on_load(false);
     for (unsigned int i = 0; i < 6; i++)
@@ -321,22 +515,188 @@ int main() {
     }
 
 
-
-
     // --- BUCLE PRINCIPAL ---
     while (!glfwWindowShouldClose(window)) {
-
+        if (menu && !showHelp && !showCredits) {
+            for (auto& btn : menuButtons) {
+                btn.Update(mousePos);
+            }
+        }
+        else if (showHelp) {
+            backButtonHelp.Update(mousePos);
+        }
+        else if (showCredits) {
+            backButtonCredits.Update(mousePos);
+        }
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         static bool inEnvironment = false;
-        
 
-        if (menu) {
+        if (showHelp) {
             glDisable(GL_DEPTH_TEST);
             glEnable(GL_BLEND);
             glDisable(GL_CULL_FACE);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            menuShader.Activate();
+            glm::mat4 projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+            glUniformMatrix4fv(glGetUniformLocation(menuShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, menuTexture);
+            glBindVertexArray(quadVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+            float currentY = height / 4; 
+
+            float baseFontSize = 78.0f; 
+            float lineSpacingFactor = 1.0f;
+
+            float titleScale = 1.0f;
+            std::string helpTitle = "COMO JUGAR";
+            float helpTitleWidth = textRenderer->CalculateTextWidth(helpTitle, titleScale);
+            textRenderer->RenderText(textShader, helpTitle,
+                width / 2 - helpTitleWidth / 2, 
+                currentY,
+                titleScale,
+                glm::vec3(0.0f, 0.0f, 0.0f)); 
+
+            currentY += (baseFontSize * titleScale) * lineSpacingFactor * 1.5f; 
+
+            float instructionScale = 0.7f;
+            std::string movement1 = "W: MOVER HACIA LA IZQUIERDA";
+            std::string movement2 = "A: MOVER A LA IZQUIERDA";
+            std::string movement3 = "S: MOVER HACIA ATRAS";
+            std::string movement4 = "D: MOVER A LA DERECHA";
+            std::string movement5 = "ESC: VOLVER AL MENU PRINCIPAL";
+
+            float leftMargin = width / 2 - 700.0f;
+
+            textRenderer->RenderText(textShader, movement1, leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
+            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
+
+            textRenderer->RenderText(textShader, movement2, leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
+            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
+
+            textRenderer->RenderText(textShader, movement3, leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
+            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
+
+            textRenderer->RenderText(textShader, movement4, leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
+            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
+
+            textRenderer2->RenderText(textShader, "Mouse: Mirar alrededor", leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
+            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
+
+            currentY += (baseFontSize * instructionScale) * lineSpacingFactor * 1.5f;
+            textRenderer2->RenderText(textShader, "Acercate a los modelos para ver su informacion.", leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
+            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
+
+            textRenderer->RenderText(textShader, movement5, leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
+            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
+
+
+            // Renderizado 
+            Shader buttonShader("button.vert", "button.frag");
+            buttonShader.Activate();
+            glUniformMatrix4fv(glGetUniformLocation(buttonShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+            backButtonHelp.Render(*textRenderer, buttonShader);
+
+            textShader.Activate();
+            glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+            backButtonHelp.RenderTextOnly(*textRenderer, textShader, 0.5f);
+
+        }
+        else if (showCredits) {
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
+            glDisable(GL_CULL_FACE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            menuShader.Activate();
+            glm::mat4 projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+            glUniformMatrix4fv(glGetUniformLocation(menuShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, menuTexture); 
+            glBindVertexArray(quadVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+            // Renderizado 
+            Shader buttonShader("button.vert", "button.frag");
+            buttonShader.Activate();
+            glUniformMatrix4fv(glGetUniformLocation(buttonShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+            backButtonCredits.Render(*textRenderer, buttonShader);
+
+            textShader.Activate();
+            glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+            // Texto de cr√©ditos
+            float currentY = height / 4; // ajustar este valor
+            float titleScale = 1.0f;
+            std::string titleText = "CREDITOS";
+            float titleWidth = textRenderer->CalculateTextWidth(titleText, titleScale);
+            textRenderer->RenderText(textShader, titleText,
+                width / 2 - titleWidth / 2,
+                currentY,
+                titleScale,
+                glm::vec3(0.0f, 0.0f, 0.0f)); 
+       
+            float baseFontSize = 128.0f; 
+            float lineSpacingFactor = 1.0f; 
+            currentY += (baseFontSize * titleScale) * lineSpacingFactor;
+
+            float devByScale = 0.8f;
+            std::string devByText = "DESARROLLADO POR:";
+            float devByWidth = textRenderer->CalculateTextWidth(devByText, devByScale);
+            textRenderer->RenderText(textShader, devByText,
+                width / 2 - devByWidth / 2,
+                currentY,
+                devByScale,
+                glm::vec3(0.0f, 0.0f, 0.0f));
+
+            currentY += (baseFontSize * devByScale) * lineSpacingFactor; 
+
+            float nameScale = 0.7f;
+            std::string nameText = "ALANIZ HERRERA ROGER ANTONIO 2023-0625U";
+            float nameWidth = textRenderer->CalculateTextWidth(nameText, nameScale);
+            textRenderer->RenderText(textShader, nameText,
+                width / 2 - nameWidth / 2,
+                currentY,
+                nameScale,
+                glm::vec3(0.0f, 0.0f, 0.0f));
+            currentY += (baseFontSize * nameScale) * lineSpacingFactor;
+
+            std::string name2Text = "BRAN RAMOS NAZARETH DE LOS ANGELES 2023-0863U"; 
+            float name2Width = textRenderer->CalculateTextWidth(name2Text, nameScale);
+            textRenderer->RenderText(textShader, name2Text,
+                width / 2 - name2Width / 2,
+                currentY,
+                nameScale,
+                glm::vec3(0.0f, 0.0f, 0.0f)); 
+
+            currentY += (baseFontSize * nameScale) * lineSpacingFactor;
+
+
+            std::string name3Text = "FLORES MENDOZA LESTER NAHUM 2023-0632U"; 
+            float name3Width = textRenderer->CalculateTextWidth(name3Text, nameScale);
+            textRenderer->RenderText(textShader, name3Text,
+                width / 2 - name3Width / 2,
+                currentY,
+                nameScale,
+                glm::vec3(0.0f, 0.0f, 0.0f));
+
+            currentY += (baseFontSize * nameScale) * lineSpacingFactor;
+
+           backButtonCredits.RenderTextOnly(*textRenderer, textShader, 0.5f);
+
+        }
+        else if (menu) {
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
+            glDisable(GL_CULL_FACE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
             if (currentMusic != "Sound/MenuSound.mp3") {
                 Sound.playBackgroundMusic("Sound/MenuSound.mp3", 1.0f);
                 currentMusic = "Sound/MenuSound.mp3";
@@ -352,20 +712,39 @@ int main() {
             glBindVertexArray(quadVAO);
             glDrawArrays(GL_TRIANGLES, 0, 6);
 
-            // Render text and buttons
+            // Botones del menu
+            Shader buttonShader("button.vert", "button.frag");
+            buttonShader.Activate();
+            glm::mat4 buttonProjection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+            glUniformMatrix4fv(glGetUniformLocation(buttonShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(buttonProjection));
+
+            for (auto& btn : menuButtons) {
+                btn.Render(*textRenderer, buttonShader);
+            }
+
+            // Render text for title and buttons
             textShader.Activate();
             glm::mat4 textProjection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
             glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(textProjection));
 
-            textRenderer->RenderText(textShader, "THE VIRTUAL GALLERY", width / 2 - 250, height / 4, 1.0f, glm::vec3(1.0f));
-            for (auto& button : menuButtons) {
-                button.Render(*textRenderer, textShader);
+            // Titulo
+            float titleScale = 1.8f;
+            std::string title = "THE VIRTUAL GALLERY";
+            float titleWidth = textRenderer->CalculateTextWidth(title, titleScale);
+            textRenderer->RenderText(textShader, title,
+                width / 2 - titleWidth / 2,
+                height / 5,
+                titleScale,
+                glm::vec3(0.0f, 0.0f, 0.0f));
+
+            float buttonTextScale = 1.8f;
+            for (auto& btn : menuButtons) {
+                btn.RenderTextOnly(*textRenderer, textShader, buttonTextScale);
             }
         }
         else {
-            // ConfiguraciÛn para renderizado 3D
             glEnable(GL_DEPTH_TEST);
-            glEnable(GL_CULL_FACE);
+            glDisable(GL_CULL_FACE); 
             glDisable(GL_BLEND);
 
             if (!inEnvironment) {
@@ -375,42 +754,49 @@ int main() {
                 inEnvironment = true;
             }
             else {
-                // Si la m˙sica terminÛ, reproducimos otra
+                // Si la m√∫sica termin√≥, reproducimos otra
                 if (!Sound.getBackgroundMusic() || Sound.getBackgroundMusic()->isFinished()) {
                     std::string randomSong = pickRandomSong(envSongs);
                     Sound.playBackgroundMusic(randomSong, 1.0f);
                 }
             }
 
+            // Manejo de la tecla ESC para volver al men√∫ principal
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && !menu) {
                 menu = true;
                 inEnvironment = false;
-
-                // Opcional: detener la m˙sica actual
+                // Opcional: detener la m√∫sica actual
                 if (Sound.getBackgroundMusic()) {
                     Sound.getBackgroundMusic()->stop();
                 }
             }
 
-            // render de escena 3D
+            // Render de la escena 3D
             camera.Inputs(window);
             camera.updateMatrix(60.0f, 0.1f, 100.0f);
+
+            // Aplicar l√≠mites a la c√°mara
             camera.Position.x = limits(camera.Position.x, limit_min.x, limit_max.x);
             camera.Position.y = limits(camera.Position.y, limit_min.y, limit_max.y);
             camera.Position.z = limits(camera.Position.z, limit_min.z, limit_max.z);
-            camera.AddCollider(glm::vec3(0.3201, 3.97696, 32.9264), 4.5f);
-            camera.AddCollider(glm::vec3(-13.9183, 2.28625, 18.5213), 4.5f);
-            camera.AddCollider(glm::vec3(16.4938, 3.65387, 16.5488), 2.5f);
-            camera.AddCollider(glm::vec3(14.8127, 3.80944, 49.5978), 2.5f);
-            camera.AddCollider(glm::vec3(8.51457, 2.15766, 49.942), 2.5f);
-            camera.AddCollider(glm::vec3(-8.46455, 1.67231, 50.2564), 2.5f);
-            camera.AddCollider(glm::vec3(-16.9746, 2.62017, 45.6913), 2.5f);
-            camera.AddCollider(glm::vec3(-17.1125, 2.5, 25.5523), 1.5f);
-            camera.AddCollider(glm::vec3(-17.1308, 2.5, 38.5671), 1.1f);
-            camera.AddCollider(glm::vec3(17.507, 2.5, 25.7276),1.1f);
-            camera.AddCollider(glm::vec3(17.1492, 2.5, 38.6279), 1.1f);
-            // render skybox
-            glDepthFunc(GL_LEQUAL);
+
+            // Colisiones (ajusta los valores seg√∫n tus modelos y necesidades)
+            camera.AddCollider(glm::vec3(0.3201, 3.97696, 32.9264), 3.0f, "David", "Escultura de Miguel angel (1501-1504). Marmol blanco de 5.17 metros.");
+            camera.AddCollider(glm::vec3(-13.9183, 2.28625, 18.5213), 3.0f, "La Piedad", "Escultura de Miguel angel (1498-1499). Marmol, Basilica de San Pedro.");
+            camera.AddCollider(glm::vec3(16.4938, 3.65387, 16.5488), 2.0f, "Atenea Partenos", "Escultura de Fidias (siglo V a.C.). Replica moderna.");
+            camera.AddCollider(glm::vec3(14.8127, 3.80944, 49.5978), 2.0f, "Doriforo", "Escultura de Policleto (450-440 a.C.). Copia romana en marmol.");
+            camera.AddCollider(glm::vec3(8.51457, 2.15766, 49.942), 2.0f, "Afrodita de Cnido", "Escultura de Praxoteles (siglo IV a.C.). Copia romana.");
+            camera.AddCollider(glm::vec3(-8.46455, 1.67231, 50.2564), 2.0f, "Moises", "Escultura de Miguel angel (1513-1515). Marmol, tumba del Papa Julio II.");
+            camera.AddCollider(glm::vec3(-16.9746, 2.62017, 45.6913), 2.0f, "Torso de Belvedere", "Escultura helenestica (siglo I a.C.). Marmol, Museos Vaticanos.");
+            camera.AddCollider(glm::vec3(-17.1125, 2.5, 25.5523), 1.0f);
+            camera.AddCollider(glm::vec3(-17.1308, 2.5, 38.5671), 1.0f);
+            camera.AddCollider(glm::vec3(17.507, 2.5, 25.7276), 1.0f);
+            camera.AddCollider(glm::vec3(17.1492, 2.5, 38.6279), 1.0f);
+
+            // Verificar proximidad a modelos
+            checkModelProximity(camera, exhibitModels);
+            // Render Skybox
+            glDepthFunc(GL_LEQUAL); 
             skyboxShader.Activate();
 
             glm::mat4 view = glm::mat4(glm::mat3(glm::lookAt(camera.Position, camera.Position + camera.Orientation, camera.Up)));
@@ -425,14 +811,10 @@ int main() {
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
 
-            glDepthFunc(GL_LESS);
+            glDepthFunc(GL_LESS); 
 
-            // render modelos 3D
+            // Render modelos 3D
             shaderProgram.Activate();
-           /* std::cout << "Position: (" <<
-                camera.Position.x << ", " <<
-                camera.Position.y << ", " <<
-                camera.Position.z << ")\n";*/
             camera.Matrix(shaderProgram, "camMatrix");
 
             model.Draw(shaderProgram, camera);
@@ -457,6 +839,9 @@ int main() {
             vase2.Draw(shaderProgram, camera);
             vase3.Draw(shaderProgram, camera);
             vase4.Draw(shaderProgram, camera);
+
+            // Renderizar informacion del modelo
+            renderModelInfo(*textRenderer2, textShader, width, height);
         }
 
         glfwSwapBuffers(window);
@@ -468,7 +853,9 @@ int main() {
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     glDeleteTextures(1, &menuTexture);
+    glDeleteTextures(1, &helpTexture);
     glDeleteTextures(1, &cubemapTexture);
+    delete textRenderer; 
 
     glfwDestroyWindow(window);
     glfwTerminate();

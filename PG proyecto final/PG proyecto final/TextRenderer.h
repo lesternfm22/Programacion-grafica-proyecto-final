@@ -16,8 +16,12 @@ struct Character {
 class TextRenderer {
 public:
     TextRenderer(const std::string& fontPath, int fontSize);
-    ~TextRenderer();
-
+    ~TextRenderer() = default;
+   // float GetTextHeight(const std::string& text, float scale);
+    float CalculateTextWidth(const std::string& text, float scale);
+    const Character& GetCharacter(char c) const {
+        return Characters.at(c);
+    }
     void RenderText(Shader& shader, const std::string& text, float x, float y, float scale, glm::vec3 color);
 
 private:
