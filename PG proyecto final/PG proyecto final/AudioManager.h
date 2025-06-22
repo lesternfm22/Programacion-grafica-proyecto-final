@@ -14,12 +14,10 @@ public:
 
     irrklang::ISound* getBackgroundMusic() const { return backgroundMusic; }
 
+    void stopBackgroundMusic();           
 
-    void stopBackgroundMusic();   
-    void playClickSound();        
-
-    void setMusicVolume(float volume);   // 0.0 a 1.0
-    void setEffectsVolume(float volume); // 0.0 a 1.0
+    void setMusicVolume(float volume);   
+    void setEffectsVolume(float volume); 
 
     //void playFootstepSound();
     void playFootstepLoop();

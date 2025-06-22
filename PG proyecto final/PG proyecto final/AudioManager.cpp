@@ -4,28 +4,33 @@
 AudioManager::AudioManager()
     : backgroundMusic(nullptr), footstepLoop(nullptr), musicVolume(0.4f), effectsVolume(0.6f)
 {
+    // Initialize the audio engine
     engine = irrklang::createIrrKlangDevice();
 }
 
 AudioManager::~AudioManager() {
+    // Clean up background music
     if (backgroundMusic) {
         backgroundMusic->stop();
         backgroundMusic->drop();
     }
 
+    // Clean up footstep sound
     if (footstepLoop) {
         footstepLoop->stop();
         footstepLoop->drop();
     }
 
+    // Clean up audio engine
     if (engine)
         engine->drop();
 }
 
-
+// Plays the footstep sound effect in a loop
 void AudioManager::playFootstepLoop() {
     if (!engine) return;
 
+    // Only create new instance if not already playing
     if (!footstepLoop) {
         footstepLoop = engine->play2D("Sound/WoodStep.mp3", true, false, true); // true = loop
         if (footstepLoop)
@@ -33,6 +38,7 @@ void AudioManager::playFootstepLoop() {
     }
 }
 
+// Stops the looping footstep sound effect
 void AudioManager::stopFootstepLoop() {
     if (footstepLoop) {
         footstepLoop->stop();
@@ -41,35 +47,25 @@ void AudioManager::stopFootstepLoop() {
     }
 }
 
-
-//void AudioManager::playBackgroundMusic() {
-//    if (!engine) return;
-//
-//    if (!backgroundMusic) {
-//        backgroundMusic = engine->play2D("Sound/MenuSound.mp3", true, false, true);
-//        if (backgroundMusic)
-//            backgroundMusic->setVolume(musicVolume);
-//    }
-//}
-
+// Plays background music from specified file path
 void AudioManager::playBackgroundMusic(const std::string& filepath, float volume) {
     if (!engine) return;
 
-    // Si ya hay una canción reproduciéndose, la paramos primero
+    // Stop current music if already playing
     if (backgroundMusic) {
         backgroundMusic->stop();
-        backgroundMusic->drop(); // Libera memoria
+        backgroundMusic->drop(); // Free memory
         backgroundMusic = nullptr;
     }
 
-    // Cargar la nueva canción
+    // Load and play new music track
     backgroundMusic = engine->play2D(filepath.c_str(), true, false, true);
     if (backgroundMusic) {
         backgroundMusic->setVolume(volume);
     }
 }
 
-
+// Stops currently playing background music
 void AudioManager::stopBackgroundMusic() {
     if (backgroundMusic) {
         backgroundMusic->stop();
@@ -78,20 +74,14 @@ void AudioManager::stopBackgroundMusic() {
     }
 }
 
-void AudioManager::playClickSound() {
-    if (!engine) return;
-
-    irrklang::ISound* clickSound = engine->play2D("Sound/click.mp3", false, false, true);
-    if (clickSound)
-        clickSound->setVolume(effectsVolume);
-}
-
+// Sets volume for background music
 void AudioManager::setMusicVolume(float volume) {
     musicVolume = volume;
     if (backgroundMusic)
         backgroundMusic->setVolume(musicVolume);
 }
 
+// Sets volume for sound effects
 void AudioManager::setEffectsVolume(float volume) {
     effectsVolume = volume;
 }

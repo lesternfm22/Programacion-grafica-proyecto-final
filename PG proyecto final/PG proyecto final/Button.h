@@ -13,7 +13,7 @@ public:
     void OnClick(const glm::vec2& mousePos);
     void Update(const glm::vec2& mousePos);
     void RenderTextOnly(TextRenderer& renderer, Shader& textShader, float scale = 0.8f);
-    // Nuevos métodos para estado
+    // New state methods
     bool IsHovered() const { return isHovered; }
     bool IsClicked() const { return isClicked; }
 
@@ -23,7 +23,7 @@ private:
     std::string text;
     std::function<void()> onClickCallback;
 
-    // Nuevos estados
+    // New states
     bool isHovered = false;
     bool isClicked = false;
     float clickAnimTime = 0.0f;

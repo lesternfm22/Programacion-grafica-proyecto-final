@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <filesystem>
-#include<stb/stb_image.h>
+#include <stb/stb_image.h>
 #include <vector>
 #include <string>
 #include <limits>
@@ -13,9 +13,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "AudioManager.h" 
+#include "AudioManager.h"
 
-// Estructura para información de modelos
+// Structure for model information display
 struct ModelInfo {
     Model* model;
     std::string title;
@@ -23,41 +23,47 @@ struct ModelInfo {
     float triggerDistance;
 };
 
+// Global UI state variables
 bool showHelp = false;
 bool showHelpPage2 = false;
-bool showCredits = false; 
+bool showCredits = false;
 bool showModelInfoFlag = false;
 std::string currentModelTitle;
 std::string currentModelDescription;
 std::string currentMusic = "";
+
+// Rendering resources
 TextRenderer* textRenderer;
 TextRenderer* textRenderer2;
 std::vector<Button> menuButtons;
 glm::vec2 mousePos;
 bool mousePressed = false;
 bool menu = true;
-float radio = 17.5f;
-glm::vec3 limit_min = glm::vec3(0.36923, 0.174271, 33.0354) - glm::vec3(radio, 0.174271, radio);
-glm::vec3 limit_max = glm::vec3(0.36923, 0.174271, 33.0354) + glm::vec3(radio, radio / 2, radio);
 
+// Camera movement boundaries
+float radius = 17.5f;
+glm::vec3 limit_min = glm::vec3(0.36923, 0.174271, 33.0354) - glm::vec3(radius, 0.174271, radius);
+glm::vec3 limit_max = glm::vec3(0.36923, 0.174271, 33.0354) + glm::vec3(radius, radius / 2, radius);
+
+// UI buttons
 Button backButtonHelp(
     glm::vec2(20, 20),
     glm::vec2(300, 70),
-    "REGRESAR",
+    "BACK",
     [&]() { showHelp = false; }
 );
 
 Button backButtonCredits(
     glm::vec2(20, 20),
     glm::vec2(300, 70),
-    "REGRESAR",
+    "BACK",
     [&]() { showCredits = false; }
 );
 
 Button nextButtonHelp(
     glm::vec2(1600, 20),
     glm::vec2(300, 70),
-    "SIGUIENTE",
+    "NEXT",
     [&]() {
         showHelp = false;
         showHelpPage2 = true;
@@ -67,34 +73,33 @@ Button nextButtonHelp(
 Button prevButtonHelp(
     glm::vec2(20, 20),
     glm::vec2(300, 70),
-    "REGRESAR",
+    "PREVIOUS",
     [&]() {
         showHelpPage2 = false;
         showHelp = true;
     }
 );
 
-//Funciones
+// Utility function to clamp values between min and max
 float limits(float value, float minValue, float maxValue) {
     return std::max(minValue, std::min(value, maxValue));
 }
 
-float skyboxVertices[] =
+// Skybox vertex and index data
+float skyboxVertices[] = 
 {
-    // Coordinates
-   -1.0f, -1.0f,  1.0f,//        7--------6
-    1.0f, -1.0f,  1.0f,//       /|        /|
-    1.0f, -1.0f, -1.0f,//      4--------5  |
-   -1.0f, -1.0f, -1.0f,//      | |       | |
-   -1.0f,  1.0f,  1.0f,//      | 3-------|-2
-    1.0f,  1.0f,  1.0f,//      |/        |/
-    1.0f,  1.0f, -1.0f,//      0--------1
-   -1.0f,  1.0f, -1.0f
-
+    //   Coordinates
+    -1.0f, -1.0f,  1.0f,//        7--------6
+     1.0f, -1.0f,  1.0f,//       /|       /|
+     1.0f, -1.0f, -1.0f,//      4--------5 |
+    -1.0f, -1.0f, -1.0f,//      | |      | |
+    -1.0f,  1.0f,  1.0f,//      | 3------|-2
+     1.0f,  1.0f,  1.0f,//      |/       |/
+     1.0f,  1.0f, -1.0f,//      0--------1
+    -1.0f,  1.0f, -1.0f
 };
 
-unsigned int skyboxIndices[] =
-{
+unsigned int skyboxIndices[] = {
     // Right
     1, 2, 6,
     6, 5, 1,
@@ -115,8 +120,7 @@ unsigned int skyboxIndices[] =
     7, 6, 2
 };
 
-//  FUNCION
-// Función de callback para el mouse
+// Mouse callback functions
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     mousePos = glm::vec2(xpos, ypos);
 }
@@ -155,6 +159,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
 }
 
+// Keyboard callback function
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         if (!menu && !showHelp && !showHelpPage2 && !showCredits) {
@@ -169,7 +174,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         }
     }
 }
- 
+
+// Model information display functions
 void showModelInfo(const std::string& title, const std::string& description) {
     showModelInfoFlag = true;
     currentModelTitle = title;
@@ -183,41 +189,42 @@ void hideModelInfo() {
 void renderModelInfo(TextRenderer& textRenderer, Shader& textShader, int width, int height) {
     if (!showModelInfoFlag) return;
 
+    // Set up rendering state for 2D overlay
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // Panel dimensions and position
     float panelWidth = 1850.0f;
     float panelHeight = 200.0f;
     float margin = 20.0f;
 
+    // Render semi-transparent background panel
     Shader panelShader("panel.vert", "panel.frag");
     panelShader.Activate();
     glm::mat4 projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
     glUniformMatrix4fv(glGetUniformLocation(panelShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-    glUniform4f(glGetUniformLocation(panelShader.ID, "backgroundColor"), 0.1f, 0.1f, 0.1f, 0.9f); 
+    glUniform4f(glGetUniformLocation(panelShader.ID, "backgroundColor"), 0.1f, 0.1f, 0.1f, 0.9f);
 
-    
+    // Panel vertex data
     float panelX = margin;
     float panelY = height - panelHeight - margin;
     float vertices[] = {
-        panelX, panelY + panelHeight, 0.0f, 0.0f, 1.0f, 
-        panelX, panelY, 0.0f, 0.0f, 0.0f,               
-        panelX + panelWidth, panelY, 0.0f, 1.0f, 0.0f,    
-
-        panelX, panelY + panelHeight, 0.0f, 0.0f, 1.0f, 
-        panelX + panelWidth, panelY, 0.0f, 1.0f, 0.0f,   
-        panelX + panelWidth, panelY + panelHeight, 0.0f, 1.0f, 1.0f  
+        panelX, panelY + panelHeight, 0.0f, 0.0f, 1.0f,
+        panelX, panelY, 0.0f, 0.0f, 0.0f,
+        panelX + panelWidth, panelY, 0.0f, 1.0f, 0.0f,
+        panelX, panelY + panelHeight, 0.0f, 0.0f, 1.0f,
+        panelX + panelWidth, panelY, 0.0f, 1.0f, 0.0f,
+        panelX + panelWidth, panelY + panelHeight, 0.0f, 1.0f, 1.0f
     };
 
+    // Create and render panel
     unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
@@ -229,27 +236,30 @@ void renderModelInfo(TextRenderer& textRenderer, Shader& textShader, int width, 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 
+    // Render text on top of panel
     textShader.Activate();
     glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
     float scale = 0.8f;
     float yPos = height - panelHeight + margin;
 
-    // Título
+    // Render title
     textRenderer.RenderText(textShader, currentModelTitle,
-        margin + 10.0f, yPos + 10.0f, 
-        scale * 1.2f, glm::vec3(1.0f, 1.0f, 1.0f)); 
+        margin + 10.0f, yPos + 10.0f,
+        scale * 1.2f, glm::vec3(1.0f, 1.0f, 1.0f));
 
-    // Descripción
+    // Render description
     yPos += 60.0f;
     textRenderer.RenderText(textShader, currentModelDescription,
         margin + 10.0f, yPos + 10.0f,
-        scale * 0.7f, glm::vec3(0.9f, 0.9f, 0.9f)); 
+        scale * 0.7f, glm::vec3(0.9f, 0.9f, 0.9f));
 
+    // Restore rendering state
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
 }
 
+// Function to render a generic panel
 void RenderPanel(Shader& panelShader, float x, float y, float width, float height,
     glm::vec4 color, glm::mat4& projection) {
     panelShader.Activate();
@@ -257,6 +267,7 @@ void RenderPanel(Shader& panelShader, float x, float y, float width, float heigh
     glUniform4f(glGetUniformLocation(panelShader.ID, "backgroundColor"),
         color.r, color.g, color.b, color.a);
 
+    // Panel vertex data
     float panelVertices[] = {
         x, y + height, 0.0f, 0.0f, 1.0f,
         x, y, 0.0f, 0.0f, 0.0f,
@@ -266,6 +277,7 @@ void RenderPanel(Shader& panelShader, float x, float y, float width, float heigh
         x + width, y + height, 0.0f, 1.0f, 1.0f
     };
 
+    // Create and render panel
     unsigned int panelVAO, panelVBO;
     glGenVertexArrays(1, &panelVAO);
     glGenBuffers(1, &panelVBO);
@@ -280,28 +292,28 @@ void RenderPanel(Shader& panelShader, float x, float y, float width, float heigh
     glBindVertexArray(panelVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    // Limpieza
+    // Clean up
     glDeleteVertexArrays(1, &panelVAO);
     glDeleteBuffers(1, &panelVBO);
 }
 
-//Música y Sonido
+// Music and sound configuration
 std::vector<std::string> envSongs = {
-    //"Sound/environment.mp3",
     "Sound/env1.mp3",
     "Sound/env2.mp3",
     "Sound/env3.mp3"
 };
 
+// Function to randomly select a song from the list
 std::string pickRandomSong(const std::vector<std::string>& songs) {
     if (songs.empty()) return "";
     int index = rand() % songs.size();
     return songs[index];
 }
 
+// Window dimensions
 const unsigned int width = 1920;
 const unsigned int height = 1080;
-
 
 int main() {
     // Initialize GLFW
@@ -310,6 +322,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    // Initialize random seed and audio manager
     srand(static_cast<unsigned int>(time(nullptr)));
     AudioManager Sound;
     Sound.setMusicVolume(1.0f);
@@ -318,26 +331,30 @@ int main() {
     // Create window
     GLFWwindow* window = glfwCreateWindow(width, height, "The Virtual Gallery", glfwGetPrimaryMonitor(), NULL);
     if (!window) {
-        std::cerr << "ERROR al crear la ventana GLFW" << std::endl;
+        std::cerr << "ERROR: Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
 
-    // Cargar funciones OpenGL
+    // Load OpenGL functions
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "ERROR al inicializar GLAD" << std::endl;
+        std::cerr << "ERROR: Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
+    // Set up OpenGL state
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
+    // Initialize text renderers
     textRenderer = new TextRenderer("fonts/Caprasimo.ttf", 78);
     textRenderer2 = new TextRenderer("fonts/Moodcake.ttf", 78);
+
+    // Set up callbacks
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetKeyCallback(window, key_callback);
@@ -348,49 +365,48 @@ int main() {
     Shader skyboxShader("skybox.vert", "skybox.frag");
     Shader textShader("text.vert", "text.frag");
 
-    // Configuracion de botones del menu
+    // Set up menu buttons
     menuButtons.emplace_back(
         glm::vec2(width / 2 - 150, height / 2),
         glm::vec2(300, 60),
-        "ENTRAR",
+        "ENTER",
         [&]() { menu = false; }
     );
 
     menuButtons.emplace_back(
         glm::vec2(width / 2 - 150, height / 2 + 80),
         glm::vec2(300, 60),
-        "AYUDA",
+        "HELP",
         [&]() { showHelp = true; }
     );
 
-    menuButtons.emplace_back( 
+    menuButtons.emplace_back(
         glm::vec2(width / 2 - 150, height / 2 + 160),
         glm::vec2(300, 60),
-        "CREDITOS",
+        "CREDITS",
         [&]() { showCredits = true; }
     );
 
     menuButtons.emplace_back(
         glm::vec2(width / 2 - 150, height / 2 + 240),
         glm::vec2(300, 60),
-        "SALIR",
+        "EXIT",
         [window]() { glfwSetWindowShouldClose(window, true); }
     );
 
-    // Configuracion de geometria para menu y pantallas 2D
+    // Set up quad geometry for 2D rendering
     GLuint quadVAO, quadVBO;
     glGenVertexArrays(1, &quadVAO);
     glGenBuffers(1, &quadVBO);
 
     float vertices[] = {
-        // Posiciones   // Coord. Textura
-       -1.0f,  1.0f,  0.0f, 1.0f,  // Superior izquierda
-       -1.0f, -1.0f,  0.0f, 0.0f,  // Inferior izquierda
-        1.0f, -1.0f,  1.0f, 0.0f,  // Inferior derecha
-
-       -1.0f,  1.0f,  0.0f, 1.0f,  // Superior izquierda
-        1.0f, -1.0f,  1.0f, 0.0f,  // Inferior derecha
-        1.0f,  1.0f,  1.0f, 1.0f   // Superior derecha
+        // Positions   // Texture Coords
+        -1.0f,  1.0f,  0.0f, 1.0f,  // Top left
+        -1.0f, -1.0f,  0.0f, 0.0f,  // Bottom left
+         1.0f, -1.0f,  1.0f, 0.0f,  // Bottom right
+        -1.0f,  1.0f,  0.0f, 1.0f,  // Top left
+         1.0f, -1.0f,  1.0f, 0.0f,  // Bottom right
+         1.0f,  1.0f,  1.0f, 1.0f   // Top right
     };
 
     // Light configuration
@@ -403,19 +419,18 @@ int main() {
     skyboxShader.Activate();
     glUniform1i(glGetUniformLocation(skyboxShader.ID, "skybox"), 0);
 
-
+    // Set up quad VAO/VBO
     glBindVertexArray(quadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // Posiciones
+    // Position attribute
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // TexCoords
+    // Texture coordinate attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-
-    // load image
+    // Load menu background texture
     unsigned int menuTexture;
     glGenTextures(1, &menuTexture);
     glBindTexture(GL_TEXTURE_2D, menuTexture);
@@ -433,17 +448,17 @@ int main() {
         stbi_image_free(data);
     }
     else {
-        std::cerr << "ERROR: No se pudo cargar la textura del menú (pru.jpg)" << std::endl;
+        std::cerr << "ERROR: Failed to load menu texture (pru.jpg)" << std::endl;
         return -1;
     }
 
     // Create camera
-    Camera camera(width, height, glm::vec3(4.0f, 2.0f, 20.0f));
+    Camera camera(width, height, glm::vec3(4.0f, 2.0f, 60.0f));
     camera.setAudioManager(&Sound);
 
     stbi_set_flip_vertically_on_load(false); // Important for 3D models
 
-    // Load models 
+    // Load all 3D models
     Model model("modelos/piso/scene.gltf", glm::vec3(2.0f), glm::vec3(0.0f, 13.0f, 0.0f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model pit("modelos/da vinci/mona_lisa/scene.gltf", glm::vec3(0.8f), glm::vec3(3.0f, 16.5f, -4.0f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model escul("modelos/miguel ang/david2/scene.gltf", glm::vec3(0.6f), glm::vec3(-0.7f, 31.0f, 5.4f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
@@ -465,7 +480,7 @@ int main() {
     Model vase3("modelos/vase/rosa3/scene.gltf", glm::vec3(1.5f), glm::vec3(-15.5f, 26.4f, 4.1f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
     Model vase4("modelos/vase/rosa4/scene.gltf", glm::vec3(1.5f), glm::vec3(3.7f, 22.0f, -2.3f), glm::quat(0.0f, 1.0f, 0.0f, 0.0f));
 
-    // Skybox VAO, VBO, EBO
+    // Set up skybox VAO, VBO, EBO
     unsigned int skyboxVAO, skyboxVBO, skyboxEBO;
     glGenVertexArrays(1, &skyboxVAO);
     glGenBuffers(1, &skyboxVBO);
@@ -481,9 +496,8 @@ int main() {
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    // Skybox textures
-    std::string facesCubemap[6] =
-    {
+    // Load skybox textures
+    std::string facesCubemap[6] = {
         "skybox/px.png", "skybox/nx.png",
         "skybox/py.png", "skybox/ny.png",
         "skybox/pz.png", "skybox/nz.png"
@@ -499,25 +513,19 @@ int main() {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     stbi_set_flip_vertically_on_load(false);
-    for (unsigned int i = 0; i < 6; i++)
-    {
+    for (unsigned int i = 0; i < 6; i++) {
         int width, height, nrChannels;
         unsigned char* data = stbi_load(facesCubemap[i].c_str(), &width, &height, &nrChannels, 0);
-        if (data)
-        {
+        if (data) {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             stbi_image_free(data);
         }
-        else
-        {
+        else {
             std::cout << "Failed to load skybox texture: " << facesCubemap[i] << std::endl;
             stbi_image_free(data);
         }
     }
 
-
-
-    // --- BUCLE PRINCIPAL ---
     while (!glfwWindowShouldClose(window)) {
         if (menu && !showHelp && !showHelpPage2 && !showCredits) {
             for (auto& btn : menuButtons) {
@@ -526,10 +534,10 @@ int main() {
         }
         else if (showHelp) {
             backButtonHelp.Update(mousePos);
-            nextButtonHelp.Update(mousePos);  
+            nextButtonHelp.Update(mousePos);
         }
         else if (showHelpPage2) {
-            prevButtonHelp.Update(mousePos); 
+            prevButtonHelp.Update(mousePos);
         }
         else if (showCredits) {
             backButtonCredits.Update(mousePos);
@@ -577,8 +585,8 @@ int main() {
 
             currentY += (baseFontSize * titleScale) * lineSpacingFactor * 1.5f;
 
-            float textScale = 0.40f; 
-            float leftMargin = width / 8; 
+            float textScale = 0.40f;
+            float leftMargin = width / 8;
 
             std::vector<std::string> descriptionLines = {
                 "THE VIRTUAL GALLERY ES UN ESPACIO INMERSIVO DONDE EL ARTE COBRA VIDA",
@@ -664,7 +672,7 @@ int main() {
             };
 
             for (const auto& control : controls) {
-                if (control == " ") {  
+                if (control == " ") {
                     currentY += (baseFontSize * instructionScale) * lineSpacingFactor * 1.5f;
                     continue;
                 }
@@ -698,7 +706,7 @@ int main() {
             glUniformMatrix4fv(glGetUniformLocation(menuShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, menuTexture); 
+            glBindTexture(GL_TEXTURE_2D, menuTexture);
             glBindVertexArray(quadVAO);
             glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -764,7 +772,7 @@ int main() {
                     glm::vec3(1.0f, 1.0f, 1.0f));
                 currentY += (baseFontSize * nameScale) * lineSpacingFactor;
             }
-           backButtonCredits.RenderTextOnly(*textRenderer, textShader, 0.5f);
+            backButtonCredits.RenderTextOnly(*textRenderer, textShader, 0.5f);
 
         }
         else if (menu) {
@@ -772,6 +780,8 @@ int main() {
             glEnable(GL_BLEND);
             glDisable(GL_CULL_FACE);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            inEnvironment = false;
+            camera.Position = glm::vec3(0.0f, 2.0f, 60.0f);
 
             if (currentMusic != "Sound/MenuSound.mp3") {
                 Sound.playBackgroundMusic("Sound/MenuSound.mp3", 1.0f);
@@ -820,7 +830,7 @@ int main() {
         }
         else {
             glEnable(GL_DEPTH_TEST);
-            glDisable(GL_CULL_FACE); 
+            glDisable(GL_CULL_FACE);
             glDisable(GL_BLEND);
 
             if (!inEnvironment) {
@@ -870,7 +880,7 @@ int main() {
             camera.AddCollider(glm::vec3(17.1492, 2.5, 38.6279), 1.0f);
 
             // Render Skybox
-            glDepthFunc(GL_LEQUAL); 
+            glDepthFunc(GL_LEQUAL);
             skyboxShader.Activate();
 
             glm::mat4 view = glm::mat4(glm::mat3(glm::lookAt(camera.Position, camera.Position + camera.Orientation, camera.Up)));
@@ -885,7 +895,7 @@ int main() {
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
 
-            glDepthFunc(GL_LESS); 
+            glDepthFunc(GL_LESS);
 
             // Render modelos 3D
             shaderProgram.Activate();
@@ -917,12 +927,13 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    // clean
+
+    // Clean up resources
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     glDeleteTextures(1, &menuTexture);
     glDeleteTextures(1, &cubemapTexture);
-    delete textRenderer; 
+    delete textRenderer;
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;

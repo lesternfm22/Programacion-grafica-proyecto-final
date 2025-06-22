@@ -12,7 +12,7 @@ void Button::Update(const glm::vec2& mousePos) {
     bool wasHovered = isHovered;
     isHovered = IsMouseOver(mousePos);
 
-    // Animación de click
+    // Click animation handling
     if (isClicked) {
         clickAnimTime += 0.1f;
         if (clickAnimTime >= 1.0f) {
@@ -23,30 +23,33 @@ void Button::Update(const glm::vec2& mousePos) {
 }
 
 void Button::RenderTextOnly(TextRenderer& renderer, Shader& textShader, float scale) {
+    // Calculate total text width
     float textWidth = 0.0f;
     for (const char& c : text) {
         Character ch = renderer.GetCharacter(c);
         textWidth += (ch.Advance >> 6) * scale;
     }
+
+    // Center text within button
     float textX = position.x + (size.x - text.length() * 25) / 2.0f;
     float textY = position.y + size.y / 5.0f;
     renderer.RenderText(textShader, text, textX, textY, 0.5f, glm::vec3(0.0f));
 }
 
 void Button::Render(TextRenderer& renderer, Shader& shader) {
-    // Calcular color basado en estado
+    // Calculate button color based on state
     glm::vec3 buttonColor;
     if (isClicked) {
-        buttonColor = glm::vec3(0.2f, 0.5f, 0.8f); // Azul cuando se hace click
+        buttonColor = glm::vec3(0.2f, 0.5f, 0.8f); // Blue when clicked
     }
     else if (isHovered) {
-        buttonColor = glm::vec3(0.3f, 0.3f, 0.3f); // Gris cuando el mouse está encima
+        buttonColor = glm::vec3(0.3f, 0.3f, 0.3f); // Gray when hovered
     }
     else {
-        buttonColor = glm::vec3(1.0f, 1.0f, 1.0f); //blanco normsl
+        buttonColor = glm::vec3(1.0f, 1.0f, 1.0f); // Default white
     }
 
-    // Renderizar fondo del botón (un rectángulo)
+    // Button background vertices (rectangle)
     float vertices[] = {
         position.x, position.y, 0.0f,
         position.x, position.y + size.y, 0.0f,
@@ -57,8 +60,7 @@ void Button::Render(TextRenderer& renderer, Shader& shader) {
         position.x + size.x, position.y, 0.0f
     };
 
-
-    // Configurar y dibujar el fondo
+    // Set up and draw button background
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -76,25 +78,22 @@ void Button::Render(TextRenderer& renderer, Shader& shader) {
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    // Limpiar
+    // Clean up
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-
-
 }
 
 bool Button::IsMouseOver(const glm::vec2& mousePos) const {
+    // Check if mouse position is within button bounds
     return mousePos.x >= position.x &&
         mousePos.x <= position.x + size.x &&
         mousePos.y >= position.y &&
         mousePos.y <= position.y + size.y;
 }
 
-void Button::OnClick(const glm::vec2& mousePos) {  // Añade el parámetro
+void Button::OnClick(const glm::vec2& mousePos) {
     if (onClickCallback && IsMouseOver(mousePos)) {
         isClicked = true;
         onClickCallback();
     }
-
 }
-

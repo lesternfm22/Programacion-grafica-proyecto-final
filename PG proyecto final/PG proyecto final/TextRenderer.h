@@ -7,17 +7,16 @@
 #include "ShaderClass.h"
 
 struct Character {
-    GLuint     TextureID;  // ID de la textura del glifo
-    glm::ivec2 Size;       // Tamaño del glifo
-    glm::ivec2 Bearing;    // Desplazamiento desde la línea base a la izquierda/arriba
-    GLuint     Advance;    // Desplazamiento horizontal hasta la próxima posición
+    GLuint     TextureID;  // ID of the glyph's texture
+    glm::ivec2 Size;       // Size of the glyph
+    glm::ivec2 Bearing;    // Offset from baseline to left/top
+    GLuint     Advance;    // Horizontal offset to advance to next glyph
 };
 
 class TextRenderer {
 public:
     TextRenderer(const std::string& fontPath, int fontSize);
     ~TextRenderer() = default;
-   // float GetTextHeight(const std::string& text, float scale);
     float CalculateTextWidth(const std::string& text, float scale);
     const Character& GetCharacter(char c) const {
         return Characters.at(c);
