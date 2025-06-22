@@ -23,8 +23,8 @@ struct ModelInfo {
     float triggerDistance;
 };
 
-bool musicStarted = false;
 bool showHelp = false;
+bool showHelpPage2 = false;
 bool showCredits = false; 
 bool showModelInfoFlag = false;
 std::string currentModelTitle;
@@ -33,7 +33,6 @@ std::string currentMusic = "";
 TextRenderer* textRenderer;
 TextRenderer* textRenderer2;
 std::vector<Button> menuButtons;
-std::vector<ModelInfo> exhibitModels;
 glm::vec2 mousePos;
 bool mousePressed = false;
 bool menu = true;
@@ -53,6 +52,26 @@ Button backButtonCredits(
     glm::vec2(300, 70),
     "REGRESAR",
     [&]() { showCredits = false; }
+);
+
+Button nextButtonHelp(
+    glm::vec2(1600, 20),
+    glm::vec2(300, 70),
+    "SIGUIENTE",
+    [&]() {
+        showHelp = false;
+        showHelpPage2 = true;
+    }
+);
+
+Button prevButtonHelp(
+    glm::vec2(20, 20),
+    glm::vec2(300, 70),
+    "REGRESAR",
+    [&]() {
+        showHelpPage2 = false;
+        showHelp = true;
+    }
 );
 
 //Funciones
@@ -107,19 +126,27 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         mousePressed = (action == GLFW_PRESS);
 
         if (mousePressed) {
-            if (menu && !showHelp && !showCredits) {
+            if (menu && !showHelp && !showHelpPage2 && !showCredits) {
                 for (auto& btn : menuButtons) {
                     if (btn.IsMouseOver(mousePos)) {
                         btn.OnClick(mousePos);
                     }
                 }
             }
-            else if (showHelp) { 
+            else if (showHelp) {
                 if (backButtonHelp.IsMouseOver(mousePos)) {
                     backButtonHelp.OnClick(mousePos);
                 }
+                if (nextButtonHelp.IsMouseOver(mousePos)) {
+                    nextButtonHelp.OnClick(mousePos);
+                }
             }
-            else if (showCredits) { 
+            else if (showHelpPage2) {
+                if (prevButtonHelp.IsMouseOver(mousePos)) {
+                    prevButtonHelp.OnClick(mousePos);
+                }
+            }
+            else if (showCredits) {
                 if (backButtonCredits.IsMouseOver(mousePos)) {
                     backButtonCredits.OnClick(mousePos);
                 }
@@ -130,19 +157,19 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        if (!menu && !showHelp && !showCredits) { 
+        if (!menu && !showHelp && !showHelpPage2 && !showCredits) {
             menu = true;
         }
-        else if (showHelp) { 
+        else if (showHelp || showHelpPage2) {
             showHelp = false;
+            showHelpPage2 = false;
         }
         else if (showCredits) {
             showCredits = false;
         }
     }
 }
-
-
+ 
 void showModelInfo(const std::string& title, const std::string& description) {
     showModelInfoFlag = true;
     currentModelTitle = title;
@@ -153,50 +180,6 @@ void hideModelInfo() {
     showModelInfoFlag = false;
 }
 
-bool isInExhibitZone(glm::vec3 cameraPos, glm::vec3 modelPos) {
-   
-    float zoneWidth = 5.0f;
-    float zoneDepth = 5.0f;
-
-    return (cameraPos.x > modelPos.x - zoneWidth / 2 &&
-        cameraPos.x < modelPos.x + zoneWidth / 2 &&
-        cameraPos.z > modelPos.z - zoneDepth / 2 &&
-        cameraPos.z < modelPos.z + zoneDepth / 2);
-}
-
-
-void checkModelProximity(Camera& camera, std::vector<ModelInfo>& exhibitModels) {
-    static ModelInfo* lastNearbyModel = nullptr;
-
-    ModelInfo* nearestModel = nullptr;
-    float minHorizontalDist = std::numeric_limits<float>::max();
-
-    for (auto& modelInfo : exhibitModels) {
-
-        glm::vec2 cameraPosXZ(camera.Position.x, camera.Position.z);
-        glm::vec2 modelPosXZ(modelInfo.model->GetPosition().x, modelInfo.model->GetPosition().z);
-        float horizontalDist = glm::distance(cameraPosXZ, modelPosXZ);
-
-        if (horizontalDist < modelInfo.triggerDistance) {
-            if (horizontalDist < minHorizontalDist) {
-                minHorizontalDist = horizontalDist;
-                nearestModel = &modelInfo;
-            }
-        }
-    }
-
-    if (nearestModel != lastNearbyModel) {
-        if (lastNearbyModel) {
-            hideModelInfo();
-        }
-
-        if (nearestModel) {
-            showModelInfo(nearestModel->title, nearestModel->description);
-        }
-        lastNearbyModel = nearestModel;
-    }
-}
-
 void renderModelInfo(TextRenderer& textRenderer, Shader& textShader, int width, int height) {
     if (!showModelInfoFlag) return;
 
@@ -204,7 +187,7 @@ void renderModelInfo(TextRenderer& textRenderer, Shader& textShader, int width, 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    float panelWidth = 1900.0f;
+    float panelWidth = 1850.0f;
     float panelHeight = 200.0f;
     float margin = 20.0f;
 
@@ -265,6 +248,41 @@ void renderModelInfo(TextRenderer& textRenderer, Shader& textShader, int width, 
 
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
+}
+
+void RenderPanel(Shader& panelShader, float x, float y, float width, float height,
+    glm::vec4 color, glm::mat4& projection) {
+    panelShader.Activate();
+    glUniformMatrix4fv(glGetUniformLocation(panelShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    glUniform4f(glGetUniformLocation(panelShader.ID, "backgroundColor"),
+        color.r, color.g, color.b, color.a);
+
+    float panelVertices[] = {
+        x, y + height, 0.0f, 0.0f, 1.0f,
+        x, y, 0.0f, 0.0f, 0.0f,
+        x + width, y, 0.0f, 1.0f, 0.0f,
+        x, y + height, 0.0f, 0.0f, 1.0f,
+        x + width, y, 0.0f, 1.0f, 0.0f,
+        x + width, y + height, 0.0f, 1.0f, 1.0f
+    };
+
+    unsigned int panelVAO, panelVBO;
+    glGenVertexArrays(1, &panelVAO);
+    glGenBuffers(1, &panelVBO);
+    glBindVertexArray(panelVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, panelVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(panelVertices), panelVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(panelVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    // Limpieza
+    glDeleteVertexArrays(1, &panelVAO);
+    glDeleteBuffers(1, &panelVBO);
 }
 
 //Música y Sonido
@@ -398,7 +416,7 @@ int main() {
 
 
     // load image
-    unsigned int menuTexture, helpTexture;
+    unsigned int menuTexture;
     glGenTextures(1, &menuTexture);
     glBindTexture(GL_TEXTURE_2D, menuTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -417,23 +435,6 @@ int main() {
     else {
         std::cerr << "ERROR: No se pudo cargar la textura del menú (pru.jpg)" << std::endl;
         return -1;
-    }
-
-    glGenTextures(1, &helpTexture);
-    glBindTexture(GL_TEXTURE_2D, helpTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    unsigned char* helpData = stbi_load("imagenes/menu.png", &imgWidth, &imgHeight, &channels, STBI_rgb_alpha);
-    if (helpData) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, helpData);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(helpData);
-    }
-    else {
-        std::cerr << "ERROR: No se pudo cargar la imagen de ayuda (menu.png)" << std::endl;
     }
 
     // Create camera
@@ -515,20 +516,24 @@ int main() {
     }
 
 
+
     // --- BUCLE PRINCIPAL ---
     while (!glfwWindowShouldClose(window)) {
-        if (menu && !showHelp && !showCredits) {
+        if (menu && !showHelp && !showHelpPage2 && !showCredits) {
             for (auto& btn : menuButtons) {
                 btn.Update(mousePos);
             }
         }
         else if (showHelp) {
             backButtonHelp.Update(mousePos);
+            nextButtonHelp.Update(mousePos);  
+        }
+        else if (showHelpPage2) {
+            prevButtonHelp.Update(mousePos); 
         }
         else if (showCredits) {
             backButtonCredits.Update(mousePos);
         }
-
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         static bool inEnvironment = false;
@@ -548,64 +553,139 @@ int main() {
             glBindVertexArray(quadVAO);
             glDrawArrays(GL_TRIANGLES, 0, 6);
 
-            float currentY = height / 4; 
+            Shader panelShader("panel.vert", "panel.frag");
+            float panelWidth = width * 0.8f;
+            float panelHeight = height * 0.6f;
+            float panelX = (width - panelWidth) / 2;
+            float panelY = (height - panelHeight) / 2;
 
-            float baseFontSize = 78.0f; 
-            float lineSpacingFactor = 1.0f;
+            RenderPanel(panelShader, panelX, panelY, panelWidth, panelHeight,
+                glm::vec4(0.0f, 0.0f, 0.0f, 0.7f), projection);
+
+            float currentY = height / 4;
+            float baseFontSize = 78.0f;
+            float lineSpacingFactor = 1.5f;
 
             float titleScale = 1.0f;
-            std::string helpTitle = "COMO JUGAR";
+            std::string helpTitle = "ACERCA DE LA GALERIA";
             float helpTitleWidth = textRenderer->CalculateTextWidth(helpTitle, titleScale);
             textRenderer->RenderText(textShader, helpTitle,
-                width / 2 - helpTitleWidth / 2, 
+                width / 2 - helpTitleWidth / 2,
                 currentY,
                 titleScale,
-                glm::vec3(0.0f, 0.0f, 0.0f)); 
+                glm::vec3(1.0f, 1.0f, 1.0f));
 
-            currentY += (baseFontSize * titleScale) * lineSpacingFactor * 1.5f; 
+            currentY += (baseFontSize * titleScale) * lineSpacingFactor * 1.5f;
 
-            float instructionScale = 0.7f;
-            std::string movement1 = "W: MOVER HACIA LA IZQUIERDA";
-            std::string movement2 = "A: MOVER A LA IZQUIERDA";
-            std::string movement3 = "S: MOVER HACIA ATRAS";
-            std::string movement4 = "D: MOVER A LA DERECHA";
-            std::string movement5 = "ESC: VOLVER AL MENU PRINCIPAL";
+            float textScale = 0.40f; 
+            float leftMargin = width / 8; 
 
-            float leftMargin = width / 2 - 700.0f;
+            std::vector<std::string> descriptionLines = {
+                "THE VIRTUAL GALLERY ES UN ESPACIO INMERSIVO DONDE EL ARTE COBRA VIDA",
+                "EXPLORA REPLICAS DIGITALES DE OBRAS MAESTRAS DEL RENACIMIENTO",
+                "ESCULTURAS ICONICAS Y PINTURAS LEGENDARIAS EN UN ENTORNO 3D INTERACTIVO",
+                "CAMINA ENTRE LAS CREACIONES DE MIGUEL ANGEL, LEONARDO DA VINCI",
+                "Y VAN GOGH COMO SI ESTUVIERAS EN UN MUSEO REAL, CON INFORMACION",
+                "DETALLADA AL ALCANCE DE LA MANO"
+            };
 
-            textRenderer->RenderText(textShader, movement1, leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
-            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
+            for (const auto& line : descriptionLines) {
+                textRenderer->RenderText(textShader, line,
+                    leftMargin,
+                    currentY,
+                    textScale,
+                    glm::vec3(1.0f, 1.0f, 1.0f));
+                currentY += (baseFontSize * textScale) * lineSpacingFactor;
+            }
 
-            textRenderer->RenderText(textShader, movement2, leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
-            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
-
-            textRenderer->RenderText(textShader, movement3, leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
-            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
-
-            textRenderer->RenderText(textShader, movement4, leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
-            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
-
-            textRenderer2->RenderText(textShader, "Mouse: Mirar alrededor", leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
-            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
-
-            currentY += (baseFontSize * instructionScale) * lineSpacingFactor * 1.5f;
-            textRenderer2->RenderText(textShader, "Acercate a los modelos para ver su informacion.", leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
-            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
-
-            textRenderer->RenderText(textShader, movement5, leftMargin, currentY, instructionScale, glm::vec3(0.0f, 0.0f, 0.0f));
-            currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
-
-
-            // Renderizado 
+            // Render buttons
             Shader buttonShader("button.vert", "button.frag");
             buttonShader.Activate();
             glUniformMatrix4fv(glGetUniformLocation(buttonShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
             backButtonHelp.Render(*textRenderer, buttonShader);
+            nextButtonHelp.Render(*textRenderer, buttonShader);
 
             textShader.Activate();
             glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-            backButtonHelp.RenderTextOnly(*textRenderer, textShader, 0.5f);
 
+            backButtonHelp.RenderTextOnly(*textRenderer, textShader, 0.5f);
+            nextButtonHelp.RenderTextOnly(*textRenderer, textShader, 0.5f);
+        }
+        else if (showHelpPage2) {
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
+            glDisable(GL_CULL_FACE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            menuShader.Activate();
+            glm::mat4 projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+            glUniformMatrix4fv(glGetUniformLocation(menuShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, menuTexture);
+            glBindVertexArray(quadVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+            Shader panelShader("panel.vert", "panel.frag");
+            float panelWidth = width * 0.8f;
+            float panelHeight = height * 0.6f;
+            float panelX = (width - panelWidth) / 2;
+            float panelY = (height - panelHeight) / 2;
+
+            RenderPanel(panelShader, panelX, panelY, panelWidth, panelHeight,
+                glm::vec4(0.1f, 0.1f, 0.1f, 0.7f), projection);
+
+            float currentY = height / 4;
+            float baseFontSize = 78.0f;
+            float lineSpacingFactor = 1.0f;
+
+            float titleScale = 1.5f;
+            std::string helpTitle = "COMO USAR";
+            float helpTitleWidth = textRenderer->CalculateTextWidth(helpTitle, titleScale);
+            textRenderer->RenderText(textShader, helpTitle,
+                width / 2 - helpTitleWidth / 2,
+                currentY,
+                titleScale,
+                glm::vec3(1.0f, 1.0f, 1.0f));
+
+            currentY += (baseFontSize * titleScale) * lineSpacingFactor * 1.5f;
+            float instructionScale = 0.45f;
+            float leftMargin = width / 4;
+
+            std::vector<std::string> controls = {
+                "W: MOVER HACIA ADELANTE",
+                "A: MOVER A LA IZQUIERDA",
+                "S: MOVER HACIA ATRAS",
+                "D: MOVER A LA DERECHA",
+                "MOUSE: MIRAR ALREDEDOR",
+                "ACERCATE A LOS MODELOS PARA VER SU INFORMACION.",
+                "ESC: VOLVER AL MENU PRINCIPAL"
+            };
+
+            for (const auto& control : controls) {
+                if (control == " ") {  
+                    currentY += (baseFontSize * instructionScale) * lineSpacingFactor * 1.5f;
+                    continue;
+                }
+                textRenderer->RenderText(textShader, control,
+                    leftMargin,
+                    currentY,
+                    instructionScale,
+                    glm::vec3(1.0f, 1.0f, 1.0f));
+                currentY += (baseFontSize * instructionScale) * lineSpacingFactor;
+            }
+            // Render buttons
+            Shader buttonShader("button.vert", "button.frag");
+            buttonShader.Activate();
+            glUniformMatrix4fv(glGetUniformLocation(buttonShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+            prevButtonHelp.Render(*textRenderer, buttonShader);
+
+            textShader.Activate();
+            glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+            prevButtonHelp.RenderTextOnly(*textRenderer, textShader, 0.5f);
         }
         else if (showCredits) {
             glDisable(GL_DEPTH_TEST);
@@ -631,63 +711,59 @@ int main() {
             textShader.Activate();
             glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-            // Texto de créditos
-            float currentY = height / 4; // ajustar este valor
-            float titleScale = 1.0f;
-            std::string titleText = "CREDITOS";
+
+            Shader panelShader("panel.vert", "panel.frag");
+            float panelWidth = width * 0.9f;
+            float panelHeight = height * 0.6f;
+            float panelX = (width - panelWidth) / 2;
+            float panelY = (height - panelHeight) / 2;
+
+            RenderPanel(panelShader, panelX, panelY, panelWidth, panelHeight,
+                glm::vec4(0.1f, 0.1f, 0.1f, 0.7f), projection);
+
+
+            float currentY = height / 4;
+            float baseFontSize = 128.0f;
+            float lineSpacingFactor = 1.0f;
+
+            float titleScale = 0.9f;
+            std::string titleText = "UNIVERSIDAD NACIONAL DE INGENIERIA";
             float titleWidth = textRenderer->CalculateTextWidth(titleText, titleScale);
             textRenderer->RenderText(textShader, titleText,
                 width / 2 - titleWidth / 2,
                 currentY,
                 titleScale,
-                glm::vec3(0.0f, 0.0f, 0.0f)); 
-       
-            float baseFontSize = 128.0f; 
-            float lineSpacingFactor = 1.0f; 
-            currentY += (baseFontSize * titleScale) * lineSpacingFactor;
+                glm::vec3(1.0f, 1.0f, 1.0f));
 
-            float devByScale = 0.8f;
+            currentY += (baseFontSize * titleScale) * lineSpacingFactor * 1.2f;
+
+            float subtitleScale = 0.8f;
             std::string devByText = "DESARROLLADO POR:";
-            float devByWidth = textRenderer->CalculateTextWidth(devByText, devByScale);
+            float devByWidth = textRenderer->CalculateTextWidth(devByText, subtitleScale);
             textRenderer->RenderText(textShader, devByText,
                 width / 2 - devByWidth / 2,
                 currentY,
-                devByScale,
-                glm::vec3(0.0f, 0.0f, 0.0f));
+                subtitleScale,
+                glm::vec3(1.0f, 1.0f, 1.0f));
 
-            currentY += (baseFontSize * devByScale) * lineSpacingFactor; 
+            currentY += (baseFontSize * subtitleScale) * lineSpacingFactor;
 
             float nameScale = 0.7f;
-            std::string nameText = "ALANIZ HERRERA ROGER ANTONIO 2023-0625U";
-            float nameWidth = textRenderer->CalculateTextWidth(nameText, nameScale);
-            textRenderer->RenderText(textShader, nameText,
-                width / 2 - nameWidth / 2,
-                currentY,
-                nameScale,
-                glm::vec3(0.0f, 0.0f, 0.0f));
-            currentY += (baseFontSize * nameScale) * lineSpacingFactor;
+            std::vector<std::string> names = {
+                "ALANIZ HERRERA ROGER ANTONIO 2023-0625U",
+                "BRAN RAMOS NAZARETH DE LOS ANGELES 2023-0863U",
+                "FLORES MENDOZA LESTER NAHUM 2023-0632U"
+            };
 
-            std::string name2Text = "BRAN RAMOS NAZARETH DE LOS ANGELES 2023-0863U"; 
-            float name2Width = textRenderer->CalculateTextWidth(name2Text, nameScale);
-            textRenderer->RenderText(textShader, name2Text,
-                width / 2 - name2Width / 2,
-                currentY,
-                nameScale,
-                glm::vec3(0.0f, 0.0f, 0.0f)); 
-
-            currentY += (baseFontSize * nameScale) * lineSpacingFactor;
-
-
-            std::string name3Text = "FLORES MENDOZA LESTER NAHUM 2023-0632U"; 
-            float name3Width = textRenderer->CalculateTextWidth(name3Text, nameScale);
-            textRenderer->RenderText(textShader, name3Text,
-                width / 2 - name3Width / 2,
-                currentY,
-                nameScale,
-                glm::vec3(0.0f, 0.0f, 0.0f));
-
-            currentY += (baseFontSize * nameScale) * lineSpacingFactor;
-
+            for (const auto& name : names) {
+                float nameWidth = textRenderer->CalculateTextWidth(name, nameScale);
+                textRenderer->RenderText(textShader, name,
+                    width / 2 - nameWidth / 2,
+                    currentY,
+                    nameScale,
+                    glm::vec3(1.0f, 1.0f, 1.0f));
+                currentY += (baseFontSize * nameScale) * lineSpacingFactor;
+            }
            backButtonCredits.RenderTextOnly(*textRenderer, textShader, 0.5f);
 
         }
@@ -793,8 +869,6 @@ int main() {
             camera.AddCollider(glm::vec3(17.507, 2.5, 25.7276), 1.0f);
             camera.AddCollider(glm::vec3(17.1492, 2.5, 38.6279), 1.0f);
 
-            // Verificar proximidad a modelos
-            checkModelProximity(camera, exhibitModels);
             // Render Skybox
             glDepthFunc(GL_LEQUAL); 
             skyboxShader.Activate();
@@ -823,14 +897,12 @@ int main() {
             escul2.Draw(shaderProgram, camera);
             escul3.Draw(shaderProgram, camera);
             escul4.Draw(shaderProgram, camera);
-            //room.Draw(shaderProgram, camera);
             room2.Draw(shaderProgram, camera);
             escul5.Draw(shaderProgram, camera);
             escul6.Draw(shaderProgram, camera);
             escul7.Draw(shaderProgram, camera);
             pit2.Draw(shaderProgram, camera);
             escul8.Draw(shaderProgram, camera);
-
             pilar.Draw(shaderProgram, camera);
             pilar2.Draw(shaderProgram, camera);
             pilar3.Draw(shaderProgram, camera);
@@ -839,24 +911,18 @@ int main() {
             vase2.Draw(shaderProgram, camera);
             vase3.Draw(shaderProgram, camera);
             vase4.Draw(shaderProgram, camera);
-
             // Renderizar informacion del modelo
             renderModelInfo(*textRenderer2, textShader, width, height);
         }
-
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-
     // clean
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     glDeleteTextures(1, &menuTexture);
-    glDeleteTextures(1, &helpTexture);
     glDeleteTextures(1, &cubemapTexture);
     delete textRenderer; 
-
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
