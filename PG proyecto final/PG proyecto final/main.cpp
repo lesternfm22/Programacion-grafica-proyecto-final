@@ -73,7 +73,7 @@ Button nextButtonHelp(
 Button prevButtonHelp(
     glm::vec2(20, 20),
     glm::vec2(300, 70),
-    "PREVIOUS",
+    "BACK",
     [&]() {
         showHelpPage2 = false;
         showHelp = true;
@@ -710,7 +710,7 @@ int main() {
             glBindVertexArray(quadVAO);
             glDrawArrays(GL_TRIANGLES, 0, 6);
 
-            // Renderizado 
+            // Render Panel
             Shader buttonShader("button.vert", "button.frag");
             buttonShader.Activate();
             glUniformMatrix4fv(glGetUniformLocation(buttonShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -798,7 +798,7 @@ int main() {
             glBindVertexArray(quadVAO);
             glDrawArrays(GL_TRIANGLES, 0, 6);
 
-            // Botones del menu
+            // Menu Buttons
             Shader buttonShader("button.vert", "button.frag");
             buttonShader.Activate();
             glm::mat4 buttonProjection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
@@ -813,7 +813,7 @@ int main() {
             glm::mat4 textProjection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
             glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(textProjection));
 
-            // Titulo
+            // Title
             float titleScale = 1.8f;
             std::string title = "THE VIRTUAL GALLERY";
             float titleWidth = textRenderer->CalculateTextWidth(title, titleScale);
@@ -840,14 +840,14 @@ int main() {
                 inEnvironment = true;
             }
             else {
-                // Si la música terminó, reproducimos otra
+                // if the song ends, starts another song 
                 if (!Sound.getBackgroundMusic() || Sound.getBackgroundMusic()->isFinished()) {
                     std::string randomSong = pickRandomSong(envSongs);
                     Sound.playBackgroundMusic(randomSong, 1.0f);
                 }
             }
 
-            // Manejo de la tecla ESC para volver al menú principal
+            // esc key to return to menu
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && !menu) {
                 menu = true;
                 inEnvironment = false;
@@ -857,16 +857,16 @@ int main() {
                 }
             }
 
-            // Render de la escena 3D
+            // Render Scen 3D
             camera.Inputs(window);
             camera.updateMatrix(60.0f, 0.1f, 100.0f);
 
-            // Aplicar límites a la cámara
+            // Limits of the Camera
             camera.Position.x = limits(camera.Position.x, limit_min.x, limit_max.x);
             camera.Position.y = limits(camera.Position.y, limit_min.y, limit_max.y);
             camera.Position.z = limits(camera.Position.z, limit_min.z, limit_max.z);
 
-            // Colisiones (ajusta los valores según tus modelos y necesidades)
+            // Add Collider to scultures and set the info
             camera.AddCollider(glm::vec3(0.3201, 3.97696, 32.9264), 3.0f, "David", "Escultura de Miguel angel (1501-1504). Marmol blanco de 5.17 metros.");
             camera.AddCollider(glm::vec3(-13.9183, 2.28625, 18.5213), 3.0f, "La Piedad", "Escultura de Miguel angel (1498-1499). Marmol, Basilica de San Pedro.");
             camera.AddCollider(glm::vec3(16.4938, 3.65387, 16.5488), 2.0f, "Atenea Partenos", "Escultura de Fidias (siglo V a.C.). Replica moderna.");
@@ -900,7 +900,7 @@ int main() {
 
             glDepthFunc(GL_LESS);
 
-            // Render modelos 3D
+            // Models Render 3D
             shaderProgram.Activate();
             camera.Matrix(shaderProgram, "camMatrix");
 
@@ -924,7 +924,7 @@ int main() {
             vase2.Draw(shaderProgram, camera);
             vase3.Draw(shaderProgram, camera);
             vase4.Draw(shaderProgram, camera);
-            // Renderizar informacion del modelo
+            // Render Info about the scultures
             renderModelInfo(*textRenderer2, textShader, width, height);
         }
         glfwSwapBuffers(window);
