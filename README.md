@@ -54,7 +54,7 @@ Here are some screenshots of the project showing the 3D environment, models, and
 
 Watch a short video showcasing the virtual museum in action, including camera movement, model interaction, lighting, and sound effects:
 
-https://youtu.be/Q_xHwAkFHZw?si=yTdBgC3zrLOv7y39
+https://youtu.be/1rNC-dOtMbA?si=YpsKl4Or8lXu8dhE
 
 
 ## Installation Guide
