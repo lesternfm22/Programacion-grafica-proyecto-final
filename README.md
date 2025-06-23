@@ -47,9 +47,9 @@ Here are some screenshots of the project showing the 3D environment, models, and
 
 ![Img3](Documentation/Screenshots/Img3.jpg)
 
-![Img4](Documentation/iScreenshots/Img4.jpg)
+![Img4](Documentation/Screenshots/Img4.jpg)
 
-![Img5](Documentation/iScreenshots/Img5.jpg)
+![Img5](Documentation/Screenshots/Img5.jpg)
 ## Demostrative Video
 
 Watch a short video showcasing the virtual museum in action, including camera movement, model interaction, lighting, and sound effects:
