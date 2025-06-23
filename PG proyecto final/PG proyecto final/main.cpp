@@ -325,8 +325,8 @@ int main() {
     // Initialize random seed and audio manager
     srand(static_cast<unsigned int>(time(nullptr)));
     AudioManager Sound;
-    Sound.setMusicVolume(0.5f);
-    Sound.setEffectsVolume(0.5f);
+    Sound.setMusicVolume(0.5f); // volume of music
+    Sound.setEffectsVolume(0.9f); // volume of steps
 
     // Create window
     GLFWwindow* window = glfwCreateWindow(width, height, "The Virtual Gallery", glfwGetPrimaryMonitor(), NULL);
@@ -666,6 +666,7 @@ int main() {
                 "A: MOVER A LA IZQUIERDA",
                 "S: MOVER HACIA ATRAS",
                 "D: MOVER A LA DERECHA",
+                "SHIFT: MOVERSE MAS RAPIDO",
                 "MOUSE: MIRAR ALREDEDOR",
                 "ACERCATE A LOS MODELOS PARA VER SU INFORMACION.",
                 "ESC: VOLVER AL MENU PRINCIPAL"
