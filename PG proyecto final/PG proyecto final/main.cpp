@@ -325,8 +325,8 @@ int main() {
     // Initialize random seed and audio manager
     srand(static_cast<unsigned int>(time(nullptr)));
     AudioManager Sound;
-    Sound.setMusicVolume(1.0f);
-    Sound.setEffectsVolume(0.0f);
+    Sound.setMusicVolume(0.5f);
+    Sound.setEffectsVolume(0.5f);
 
     // Create window
     GLFWwindow* window = glfwCreateWindow(width, height, "The Virtual Gallery", glfwGetPrimaryMonitor(), NULL);
@@ -874,10 +874,13 @@ int main() {
             camera.AddCollider(glm::vec3(8.51457, 2.15766, 49.942), 2.0f, "Afrodita de Cnido", "Escultura de Praxoteles (siglo IV a.C.). Copia romana.");
             camera.AddCollider(glm::vec3(-8.46455, 1.67231, 50.2564), 2.0f, "Moises", "Escultura de Miguel angel (1513-1515). Marmol, tumba del Papa Julio II.");
             camera.AddCollider(glm::vec3(-16.9746, 2.62017, 45.6913), 2.0f, "Torso de Belvedere", "Escultura helenestica (siglo I a.C.). Marmol, Museos Vaticanos.");
-            camera.AddCollider(glm::vec3(-17.1125, 2.5, 25.5523), 1.0f);
-            camera.AddCollider(glm::vec3(-17.1308, 2.5, 38.5671), 1.0f);
-            camera.AddCollider(glm::vec3(17.507, 2.5, 25.7276), 1.0f);
-            camera.AddCollider(glm::vec3(17.1492, 2.5, 38.6279), 1.0f);
+            camera.AddCollider(glm::vec3(-5.30144, 2.5, 15.5354), 0.5f, "La Mona Lisa", "Obra maestra de Leonardo da Vinci (1503-1519). Pintura al oleo sobre tabla de alamo.");
+            camera.AddCollider(glm::vec3(-0.381448, 2.5, 15.5354), 0.5f, "Retrato de una joven", "Obra maestra de Sandro Botticelli (1480-1485). Pintura al temple sobre madera.");
+            camera.AddCollider(glm::vec3(6.81855, 2.5, 15.5354), 0.5f, "La Noche Estrellada", "Pintura de Vincent van Gogh (1889). oleo sobre lienzo.");
+            camera.AddCollider(glm::vec3(-17.1125, 2.5, 25.5523), 1.0f, "Pilares decorativos");
+            camera.AddCollider(glm::vec3(-17.1308, 2.5, 38.5671), 1.0f, "Pilares decorativos");
+            camera.AddCollider(glm::vec3(17.507, 2.5, 25.7276), 1.0f, "Pilares decorativos");
+            camera.AddCollider(glm::vec3(17.1492, 2.5, 38.6279), 1.0f, "Pilares decorativos");
 
             // Render Skybox
             glDepthFunc(GL_LEQUAL);
