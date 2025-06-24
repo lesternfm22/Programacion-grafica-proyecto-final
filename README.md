@@ -1,4 +1,4 @@
-# The Virtual Art Gallery
+# The Virtual Gallery
 
 ## Description
 
